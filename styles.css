@@ -1,0 +1,33 @@
+/* ===== UNIMART — BRAND TOKENS ===== */
+:root {
+--sage: #3a6645;
+--mint: #ddeee2;
+--linen: #f7f5ef;
+--sand: #edeae0;
+--ink: #2a2a20;
+--muted: #6b6b5a;
+--border: #dedad0;
+--sage-dark: #2e5238;
+--font: "Inter", system-ui, -apple-system, sans-serif;
+--radius-sm: 6px;
+--radius: 10px;
+--radius-lg: 16px;
+--shadow-sm: 0 1px 3px rgba(42,42,32,.08);
+--shadow: 0 4px 16px rgba(42,42,32,.10);
+--shadow-lg: 0 12px 40px rgba(42,42,32,.14);
+--sidebar-width: 240px;
+--header-height: 60px;
+}
+/* ===== RESET ===== */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { height: 100%; }
+body { font-family: var(--font); background: var(--linen);
+color: var(--ink); min-height: 100vh; line-height: 1.5; }
+a { text-decoration: none; color: inherit; }
+button{ font-family: var(--font); border: none; background: none; cursor: pointer; }
+img { display: block; max-width: 100%; }
+/* ===== TYPOGRAPHY ===== */
+h1 { font-size: 1.6rem; font-weight: 700; line-height: 1.2; }
+h2 { font-size: 1.25rem; font-weight: 700; }
+h3 { font-size: 1rem; font-weight: 600; }
+p { color: var(--muted); font-size: .9rem; }
