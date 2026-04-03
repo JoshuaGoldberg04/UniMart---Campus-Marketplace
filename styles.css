@@ -31,3 +31,41 @@ h1 { font-size: 1.6rem; font-weight: 700; line-height: 1.2; }
 h2 { font-size: 1.25rem; font-weight: 700; }
 h3 { font-size: 1rem; font-weight: 600; }
 p { color: var(--muted); font-size: .9rem; }
+/* ===== BUTTONS ===== */
+.btn {
+display: inline-flex; justify-content: center; align-items: center;
+padding: 12px 18px; border-radius: var(--radius); font-weight: 600;
+transition: .2s ease;
+}
+.btn-primary { background: var(--sage); color: #fff;
+box-shadow: 0 6px 14px rgba(58,102,69,.18); }
+.btn-primary:hover { background: var(--sage-dark); }
+.btn-outline { border: 1.5px solid var(--border); color: var(--muted); background: #fff; }
+.btn-outline:hover { border-color: var(--sage); color: var(--sage); }
+.btn-full { width: 100%; }
+.btn-sm { padding: 8px 14px; font-size: .82rem; }
+.btn-lg { padding: 13px 18px; font-size: 1rem; }
+.btn-ghost { color: var(--muted); }
+.btn-ghost:hover { color: var(--sage); background: var(--mint); }
+/* ===== FORM ===== */
+.form-group { display: flex; flex-direction: column; gap: 6px; width: 100%; }
+.form-label { font-size: .85rem; font-weight: 600; }
+.form-input { width: 100%; padding: 12px 14px;
+border: 1.5px solid var(--border); border-radius: var(--radius);
+background: #fff; font-size: .9rem; outline: none; transition: .2s ease; }
+.form-input:focus { border-color: var(--sage);
+box-shadow: 0 0 0 3px rgba(58,102,69,.12); }
+.form-error { font-size: .78rem; color: #c0392b; }
+/* ===== PASSWORD WRAPPER ===== */
+.input-wrapper { position: relative; width: 100%; }
+.input-wrapper .form-input { padding-right: 42px; }
+.input-toggle { position: absolute; right: 12px; top: 50%; transform: translateY(-50%);
+color: var(--muted); width: 18px; height: 18px; cursor: pointer; }
+.input-toggle:hover { color: var(--sage); }
+/* ===== ICON HELPERS ===== */
+.ui-icon { width: 18px; height: 18px; display: inline-block; flex-shrink: 0; }
+.ui-icon svg { width: 100%; height: 100%; display: block; }
+.ui-icon-sm { width: 14px; height: 14px; }
+.ui-icon-lg { width: 28px; height: 28px; }
+.inline-action-icon { width: 16px; height: 16px; display: inline-flex;
+align-items: center; justify-content: center; vertical-align: middle; }
