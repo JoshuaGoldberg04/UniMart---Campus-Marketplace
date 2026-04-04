@@ -80,3 +80,43 @@ student_number: meta.student_number || null,
 }
 return { success: true };
 }
+/* ---------- session / auth guard ---------- */
+async function requireAuth() {
+const { data: { session } } = await _sb.auth.getSession();
+if (!session) {
+window.location.href = 'login.html';
+return null;
+}
+return _getProfile(session.user);
+}
+async function getUser() {
+const { data: { session } } = await _sb.auth.getSession();
+if (!session) return null;
+return _getProfile(session.user);
+}
+/* ---------- profile fetch helper ---------- */
+async function _getProfile(authUser) {
+const { data } = await _sb.from('users')
+.select('*').eq('id', authUser.id).single();
+if (data) {
+return {
+id: data.id,
+fullName: data.full_name,
+email: data.email || authUser.email,
+accountType: data.account_type || 'buyer',
+university: data.university || '',
+campus: data.uni_campus || '',
+studentNumber: data.student_number || '',
+};
+}
+const meta = authUser.user_metadata || {};
+return {
+id: authUser.id,
+fullName: meta.full_name || authUser.email,
+email: authUser.email,
+accountType: meta.account_type || 'buyer',
+university: meta.university || '',
+campus: meta.campus || '',
+studentNumber: meta.student_number || '',
+};
+}
