@@ -103,3 +103,79 @@ Didn't receive a code?
 <a href="#" id="resend-link">Resend</a>
 </div>
 </div>
+
+<script>
+let selectedType = null;
+let signupEmail = '';
+/* ---- Step 1: account type ---- */
+document.querySelectorAll('.account-type-option').forEach(opt => {
+opt.addEventListener('click', () => {
+document.querySelectorAll('.account-type-option')
+.forEach(o => o.classList.remove('selected'));
+opt.classList.add('selected');
+selectedType = opt.querySelector('input').value;
+document.getElementById('next-type-btn').disabled = false;
+});
+});
+document.getElementById('next-type-btn').addEventListener('click', () => {
+showStep('step-details');
+});
+/* ---- Step 2: form submit ---- */
+document.getElementById('signup-form')
+.addEventListener('submit', async function (e) {
+e.preventDefault();
+clearErrors();
+const fullName = document.getElementById('su-name').value.trim();
+const email = document.getElementById('su-email').value.trim();
+const password = document.getElementById('su-password').value;
+const university = document.getElementById('su-uni').value.trim();
+const campus = document.getElementById('su-campus').value.trim();
+const studentNumber = document.getElementById('su-student').value.trim();
+let valid = true;
+if (!fullName) { showError('name-error', 'Name is required.'); valid=false; }
+if (!email) { showError('su-email-error', 'Email required.'); valid=false; }
+if (password.length < 8)
+{ showError('su-pw-error', 'Min 8 characters.'); valid=false; }
+if (!valid) return;
+const btn = document.getElementById('signup-btn');
+btn.textContent = 'Creating account…'; btn.disabled = true;
+const result = await Auth.signUp({
+fullName, email, password,
+accountType: selectedType,
+university, campus, studentNumber,
+});
+btn.textContent = 'Create account'; btn.disabled = false;
+if (result.error) { showError('su-general-error', result.error); return; }
+signupEmail = email;
+document.getElementById('otp-email-hint').textContent =
+`Enter the 6-digit code sent to ${email}`;
+showStep('step-otp');
+});
+/* ---- Step 3: OTP auto-advance ---- */
+const otpBoxes = document.querySelectorAll('.otp-input');
+otpBoxes.forEach((box, i) => {
+box.addEventListener('input', () => {
+if (box.value && i < otpBoxes.length - 1) otpBoxes[i+1].focus();
+const code = [...otpBoxes].map(b => b.value).join('');
+document.getElementById('verify-btn').disabled = code.length < 6;
+});
+box.addEventListener('keydown', e => {
+if (e.key === 'Backspace' && !box.value && i > 0) otpBoxes[i-1].focus();
+});
+});
+document.getElementById('verify-btn')
+.addEventListener('click', async () => {
+const code = [...otpBoxes].map(b => b.value).join('');
+const result = await Auth.verifyOTP(signupEmail, code);
+if (result.error) {
+document.getElementById('otp-error').textContent = result.error;
+return;
+}
+window.location.href = 'search.html';
+});
+function showStep(id) {
+document.querySelectorAll('.auth-step')
+.forEach(s => s.classList.remove('active'));
+document.getElementById(id).classList.add('active');
+}
+</script>
