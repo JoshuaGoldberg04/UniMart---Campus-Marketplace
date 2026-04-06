@@ -75,3 +75,27 @@ overlay?.classList.toggle('show');
 });
 overlay?.addEventListener('click', close);
 }
+
+/* ---- Active nav link ---- */
+function setActiveNav() {
+const page = window.location.pathname.split('/').pop() || 'search.html';
+document.querySelectorAll('.nav-item[data-page]').forEach(item => {
+item.classList.toggle(
+'active',
+item.getAttribute('data-page') === page
+);
+});
+}
+/* ---- Initialise authenticated page ---- */
+async function initPage() {
+const user = await Auth.requireAuth();
+if (!user) return;
+populateUserShell(user);
+initDropdowns();
+setActiveNav();
+initMobileSidebar();
+document.querySelectorAll('[data-action="signout"]').forEach(btn => {
+btn.addEventListener('click', () => Auth.signOut());
+});
+return user;
+}
