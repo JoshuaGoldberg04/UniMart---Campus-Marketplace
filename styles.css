@@ -160,3 +160,41 @@ align-items: center; margin-bottom: 24px; }
 .auth-footer { text-align: center; margin-top: 20px;
 font-size: .85rem; color: var(--muted); }
 .auth-footer a { color: var(--sage); font-weight: 600; }
+
+/* ===== DROPDOWN ===== */
+.dropdown { position: relative; }
+.dropdown-menu { position: absolute; right: 0; top: calc(100% + 8px);
+background: #fff; border: 1px solid var(--border);
+border-radius: var(--radius); box-shadow: var(--shadow-lg);
+min-width: 180px; padding: 6px; z-index: 200; display: none; }
+.dropdown-menu.open { display: block; }
+.dropdown-item { display: flex; align-items: center; gap: 10px;
+padding: 9px 12px; border-radius: var(--radius-sm);
+font-size: .85rem; color: var(--ink); cursor: pointer; }
+.dropdown-item:hover { background: var(--sand); }
+.dropdown-item.danger { color: #c0392b; }
+.dropdown-divider { height: 1px; background: var(--border); margin: 4px 0; }
+/* ===== TOAST ===== */
+.toast-container { position: fixed; bottom: 24px; right: 24px; z-index: 1000;
+display: flex; flex-direction: column; gap: 10px; }
+.toast { background: var(--ink); color: #fff; padding: 12px 18px;
+border-radius: var(--radius); font-size: .875rem;
+box-shadow: var(--shadow-lg); display: flex;
+align-items: center; gap: 10px; max-width: 320px; }
+.toast.success { background: var(--sage); }
+.toast.error { background: #c0392b; }
+/* ===== FILTER CHIPS ===== */
+.filter-bar { display: flex; align-items: center; gap: 10px;
+flex-wrap: wrap; margin-bottom: 24px; }
+.filter-chip { padding: 7px 14px; border: 1.5px solid var(--border);
+border-radius: 999px; font-size: .82rem; font-weight: 500;
+color: var(--muted); background: #fff; transition: .2s ease; }
+.filter-chip:hover { border-color: var(--sage); color: var(--sage); }
+.filter-chip.active { background: var(--sage); color: #fff;
+border-color: var(--sage); }
+/* ===== EMPTY STATE ===== */
+.empty-state { display: flex; flex-direction: column; align-items: center;
+justify-content: center; text-align: center; padding: 80px 24px; }
+.empty-state-icon { width: 48px; height: 48px; margin-bottom: 16px; opacity: .5; }
+.empty-state h3 { margin-bottom: 6px; color: var(--ink); }
+.empty-state p { max-width: 360px; }
