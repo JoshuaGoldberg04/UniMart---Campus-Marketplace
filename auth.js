@@ -203,3 +203,41 @@ createdAt: l.created_at,
 })),
 };
 }
+
+/* ---------- profile update ---------- */
+async function updateProfile({ id, fullName, email, accountType }) {
+const [{ error: dbErr }, { error: authErr }] = await Promise.all([
+_sb.from('users').update({
+full_name: fullName,
+email: email.toLowerCase(),
+account_type: accountType,
+}).eq('id', id),
+_sb.auth.updateUser({
+data: { full_name: fullName, account_type: accountType }
+}),
+]);
+if (dbErr || authErr) return { error: (dbErr || authErr).message };
+return { success: true };
+}
+/* ---------- campus info update ---------- */
+async function updateCampusInfo({ id, university, campus, studentNumber }) {
+const { error } = await _sb.from('users').update({
+university: university || null,
+uni_campus: campus || null,
+student_number: studentNumber || null,
+}).eq('id', id);
+if (error) return { error: error.message };
+return { success: true };
+}
+/* ---------- password update ---------- */
+async function updatePassword({ currentPassword, newPassword, email }) {
+const { error: reAuthErr } = await _sb.auth.signInWithPassword({
+email, password: currentPassword
+});
+if (reAuthErr) return { error: 'Incorrect current password.' };
+const { error: updateErr } = await _sb.auth.updateUser({
+password: newPassword
+});
+if (updateErr) return { error: updateErr.message };
+return { success: true };
+}
