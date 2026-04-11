@@ -1,27 +1,27 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>UniMart — Campus Marketplace</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>UniMart — Campus Marketplace</title>
 </head>
 <body>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
-<script src="auth.js"></script>
-<script>
-(async function () {
-try {
-const user = await Auth.getUser();
-if (user) {
-window.location.replace('search.html');
-} else {
-window.location.replace('login.html');
-}
-} catch (err) {
-console.error('Startup error:', err);
-window.location.replace('login.html');
-}
-})();
-</script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+  <script src="auth.js"></script>
+  <script>
+    (async function () {
+      try {
+        const user = await Auth.getUser();
+        if (user) {
+          window.location.replace('search.html');
+        } else {
+          window.location.replace('login.html');
+        }
+      } catch (err) {
+        console.error('Startup error:', err);
+        window.location.replace('login.html');
+      }
+    })();
+  </script>
 </body>
 </html>
