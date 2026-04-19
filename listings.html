@@ -222,6 +222,12 @@
       color: var(--sage);
     }
 
+    .listing-item-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
     .btn-secondary {
       background: #fff;
       color: var(--ink);
@@ -387,10 +393,20 @@
               <textarea class="form-textarea" id="listing-description" placeholder="Add a short description of the item"></textarea>
             </div>
 
-            <div class="form-group">
-              <label class="form-label" for="listing-price">Price (ZAR)</label>
-              <input class="form-input" id="listing-price" type="number" min="0" step="1" placeholder="e.g. 450" />
-              <span class="form-error" id="price-error"></span>
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label" for="listing-price">Price (ZAR)</label>
+                <input class="form-input" id="listing-price" type="number" min="0" step="1" placeholder="e.g. 450" />
+                <span class="form-error" id="price-error"></span>
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="listing-status">Status</label>
+                <select class="form-select" id="listing-status">
+                  <option value="active">Active</option>
+                  <option value="sold">Sold</option>
+                  <option value="archived">Archived</option>
+                </select>
+              </div>
             </div>
 
             <div class="form-row">
@@ -485,7 +501,7 @@
       category: document.getElementById('listing-category').value,
       condition: document.getElementById('listing-condition').value,
       isTradeable: document.getElementById('listing-tradeable').checked,
-      status: 'active',
+      status: document.getElementById('listing-status').value,
     };
 
     let valid = true;
@@ -562,7 +578,13 @@
           <span class="listing-pill">${escapeHtml(listing.condition)}</span>
           ${listing.isTradeable ? '<span class="listing-pill trade">Tradeable</span>' : ''}
         </div>
-        <button class="btn btn-secondary" type="button" data-action="edit" data-id="${listing.id}">Edit</button>
+        <div class="listing-item-actions">
+          <button class="btn btn-secondary" type="button" data-action="edit" data-id="${listing.id}">Edit</button>
+          <button class="btn btn-secondary" type="button" data-action="toggle-status" data-id="${listing.id}">
+            ${listing.status === 'active' ? 'Mark sold' : 'Mark active'}
+          </button>
+          <button class="btn btn-outline-danger" type="button" data-action="delete" data-id="${listing.id}">Delete</button>
+        </div>
       </article>
     `).join('');
 
@@ -581,6 +603,45 @@
       return;
     }
 
+    if (action === 'toggle-status') {
+      const nextStatus = listing.status === 'active' ? 'sold' : 'active';
+      const result = await Auth.updateListing({
+        listingId: listing.id,
+        sellerId: pageState.user.id,
+        title: listing.title,
+        description: listing.description,
+        imageUrl: listing.imageUrl,
+        price: listing.price,
+        category: listing.category,
+        condition: listing.condition,
+        isTradeable: listing.isTradeable,
+        status: nextStatus,
+      });
+
+      if (result.error) {
+        showToast(result.error, 'error');
+        return;
+      }
+
+      showToast(`Listing marked as ${nextStatus}`, 'success');
+      loadMyListings();
+      return;
+    }
+
+    if (action === 'delete') {
+      const confirmed = window.confirm(`Delete "${listing.title}" permanently?`);
+      if (!confirmed) return;
+
+      const result = await Auth.deleteListing({ listingId: listing.id, sellerId: pageState.user.id });
+      if (result.error) {
+        showToast(result.error, 'error');
+        return;
+      }
+
+      if (pageState.editingId === listing.id) resetForm();
+      showToast('Listing deleted successfully', 'success');
+      loadMyListings();
+    }
   }
 
   function startEditing(listing) {
@@ -592,6 +653,7 @@
     document.getElementById('listing-category').value = listing.category;
     document.getElementById('listing-condition').value = listing.condition;
     document.getElementById('listing-tradeable').checked = listing.isTradeable;
+    document.getElementById('listing-status').value = listing.status;
     document.getElementById('save-listing-btn').textContent = 'Save changes';
     document.getElementById('cancel-edit-btn').style.display = 'inline-flex';
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -602,6 +664,7 @@
     clearErrors();
     document.getElementById('listing-form').reset();
     document.getElementById('form-title').textContent = 'Create a new listing';
+    document.getElementById('listing-status').value = 'active';
     document.getElementById('listing-category').value = 'Textbooks';
     document.getElementById('listing-condition').value = 'New';
     document.getElementById('save-listing-btn').textContent = 'Create listing';
