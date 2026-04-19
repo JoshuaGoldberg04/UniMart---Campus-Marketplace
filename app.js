@@ -111,3 +111,7 @@ async function initPage() {
 
   return user;
 }
+
+if (typeof module !== 'undefined') {
+  module.exports = { iconMarkup, getRoleLabel: null, populateUserShell, initDropdowns, setActiveNav, initMobileSidebar, initPage };
+}

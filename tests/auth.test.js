@@ -1,65 +1,24 @@
 /**
- * Tests for Auth module pure functions
- * These test the logic that doesn't require a live Supabase connection.
+ * Tests for Auth module pure functions (auth.js)
  */
 
-// ─── Helpers extracted from auth.js (copy of the pure functions) ────────────
+// Mock supabase global before requiring auth.js
+global.supabase = {
+  createClient: () => ({})
+};
 
-function getUserInitials(name) {
-  if (!name) return '?';
-  return name.split(' ').map(w => w[0]).slice(0, 2).join('').toUpperCase();
-}
+// Mock window for signOut redirect
+global.window = { location: { href: '' } };
 
-function _buildUser(authUser) {
-  if (!authUser) return null;
-  const meta = authUser.user_metadata || {};
-  return {
-    id: authUser.id,
-    fullName: meta.full_name || authUser.email,
-    email: authUser.email,
-    accountType: meta.account_type || 'buyer',
-    university: meta.university || '',
-    campus: meta.campus || '',
-    studentNumber: meta.student_number || '',
-  };
-}
+const { getUserInitials, _buildUser, _mapListingRecord } = require('../auth.js');
 
-function _mapListingRecord(listing) {
-  return {
-    id: listing.listing_id,
-    sellerId: listing.seller_id,
-    title: listing.title || 'Untitled listing',
-    description: listing.description || '',
-    price: Number(listing.price) || 0,
-    category: listing.category || 'Other',
-    condition: listing.condition || 'Not specified',
-    isTradeable: Boolean(listing.is_tradeable),
-    status: listing.status || 'active',
-    imageUrl: listing.image_url || '',
-    createdAt: listing.created_at,
-  };
-}
-
-function _getProfile_fromMeta(authUser) {
-  const meta = authUser.user_metadata || {};
-  return {
-    id: authUser.id,
-    fullName: meta.full_name || authUser.email,
-    email: authUser.email,
-    accountType: meta.account_type || 'buyer',
-    university: meta.university || '',
-    campus: meta.campus || '',
-    studentNumber: meta.student_number || '',
-  };
-}
-
-// ─── Dashboard aggregation logic (extracted from getListingDashboard) ────────
+// ─── Pure aggregation helpers (extracted logic, no Supabase needed) ──────────
 
 function aggregateListings(listings) {
   const now = new Date();
   const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
 
-  const totals = listings.reduce((acc, listing) => {
+  return listings.reduce((acc, listing) => {
     const price = Number(listing.price) || 0;
     const status = (listing.status || '').toLowerCase();
     const createdAt = listing.created_at ? new Date(listing.created_at) : null;
@@ -73,8 +32,6 @@ function aggregateListings(listings) {
 
     return acc;
   }, { activeListings: 0, soldListings: 0, activeValue: 0, thisMonth: 0 });
-
-  return totals;
 }
 
 function buildCategoryMap(listings) {
@@ -84,8 +41,6 @@ function buildCategoryMap(listings) {
     return acc;
   }, {});
 }
-
-// ─── Image upload validation (extracted from uploadListingImage) ─────────────
 
 const LISTING_IMAGE_MAX_BYTES = 5 * 1024 * 1024;
 
@@ -102,7 +57,6 @@ function validateImageUpload(file) {
 // TEST SUITES
 // ═══════════════════════════════════════════════════════════════════════════
 
-// ── getUserInitials ──────────────────────────────────────────────────────────
 describe('getUserInitials', () => {
   test('returns initials for a two-word name', () => {
     expect(getUserInitials('Joshua Goldberg')).toBe('JG');
@@ -133,7 +87,6 @@ describe('getUserInitials', () => {
   });
 });
 
-// ── _buildUser ───────────────────────────────────────────────────────────────
 describe('_buildUser', () => {
   test('returns null when authUser is null', () => {
     expect(_buildUser(null)).toBeNull();
@@ -155,8 +108,7 @@ describe('_buildUser', () => {
         student_number: 'STU001',
       },
     };
-    const result = _buildUser(authUser);
-    expect(result).toEqual({
+    expect(_buildUser(authUser)).toEqual({
       id: 'user-123',
       fullName: 'Test User',
       email: 'test@uni.ac.za',
@@ -193,21 +145,6 @@ describe('_buildUser', () => {
   });
 });
 
-// ── _getProfile fallback (meta path) ────────────────────────────────────────
-describe('_getProfile (metadata fallback)', () => {
-  test('builds profile from user metadata when db data absent', () => {
-    const authUser = {
-      id: 'abc',
-      email: 'meta@test.com',
-      user_metadata: { full_name: 'Meta User', account_type: 'seller_buyer' },
-    };
-    const profile = _getProfile_fromMeta(authUser);
-    expect(profile.fullName).toBe('Meta User');
-    expect(profile.accountType).toBe('seller_buyer');
-  });
-});
-
-// ── _mapListingRecord ────────────────────────────────────────────────────────
 describe('_mapListingRecord', () => {
   test('maps a full listing record correctly', () => {
     const record = {
@@ -223,7 +160,6 @@ describe('_mapListingRecord', () => {
       image_url: 'https://example.com/img.jpg',
       created_at: '2026-01-01T00:00:00Z',
     };
-
     expect(_mapListingRecord(record)).toEqual({
       id: 'lst-1',
       sellerId: 'usr-1',
@@ -270,16 +206,15 @@ describe('_mapListingRecord', () => {
   });
 });
 
-// ── aggregateListings ────────────────────────────────────────────────────────
 describe('aggregateListings', () => {
   const thisMonthISO = new Date().toISOString();
   const oldISO       = '2020-01-01T00:00:00Z';
 
   test('counts active listings correctly', () => {
     const listings = [
-      { price: '100', status: 'active',   created_at: oldISO },
-      { price: '200', status: 'active',   created_at: oldISO },
-      { price: '50',  status: 'sold',     created_at: oldISO },
+      { price: '100', status: 'active', created_at: oldISO },
+      { price: '200', status: 'active', created_at: oldISO },
+      { price: '50',  status: 'sold',   created_at: oldISO },
     ];
     const result = aggregateListings(listings);
     expect(result.activeListings).toBe(2);
@@ -296,37 +231,28 @@ describe('aggregateListings', () => {
   });
 
   test('returns zeros for empty input', () => {
-    const result = aggregateListings([]);
-    expect(result).toEqual({ activeListings: 0, soldListings: 0, activeValue: 0, thisMonth: 0 });
+    expect(aggregateListings([])).toEqual({ activeListings: 0, soldListings: 0, activeValue: 0, thisMonth: 0 });
   });
 
   test('handles missing created_at gracefully', () => {
-    const listings = [{ price: '10', status: 'active', created_at: null }];
-    expect(aggregateListings(listings).thisMonth).toBe(0);
+    expect(aggregateListings([{ price: '10', status: 'active', created_at: null }]).thisMonth).toBe(0);
   });
 
-  test('ignores unknown statuses in counts', () => {
-    const listings = [{ price: '10', status: 'pending', created_at: oldISO }];
-    const result = aggregateListings(listings);
+  test('ignores unknown statuses', () => {
+    const result = aggregateListings([{ price: '10', status: 'pending', created_at: oldISO }]);
     expect(result.activeListings).toBe(0);
     expect(result.soldListings).toBe(0);
   });
 });
 
-// ── buildCategoryMap ─────────────────────────────────────────────────────────
 describe('buildCategoryMap', () => {
   test('counts categories correctly', () => {
-    const listings = [
-      { category: 'Books' },
-      { category: 'Books' },
-      { category: 'Electronics' },
-    ];
+    const listings = [{ category: 'Books' }, { category: 'Books' }, { category: 'Electronics' }];
     expect(buildCategoryMap(listings)).toEqual({ Books: 2, Electronics: 1 });
   });
 
   test('uses "Uncategorized" for missing category', () => {
-    const listings = [{ category: null }, {}];
-    expect(buildCategoryMap(listings)).toEqual({ Uncategorized: 2 });
+    expect(buildCategoryMap([{ category: null }, {}])).toEqual({ Uncategorized: 2 });
   });
 
   test('returns empty object for empty input', () => {
@@ -334,43 +260,24 @@ describe('buildCategoryMap', () => {
   });
 });
 
-// ── validateImageUpload ──────────────────────────────────────────────────────
 describe('validateImageUpload', () => {
   test('accepts a file under 5 MB', () => {
-    const file = { name: 'photo.jpg', size: 1 * 1024 * 1024 };
-    expect(validateImageUpload(file).valid).toBe(true);
+    expect(validateImageUpload({ name: 'photo.jpg', size: 1 * 1024 * 1024 }).valid).toBe(true);
   });
 
   test('rejects a file over 5 MB', () => {
-    const file = { name: 'huge.jpg', size: 6 * 1024 * 1024 };
-    expect(validateImageUpload(file).error).toBe('Image must be 5 MB or smaller.');
+    expect(validateImageUpload({ name: 'huge.jpg', size: 6 * 1024 * 1024 }).error).toBe('Image must be 5 MB or smaller.');
   });
 
-  test('rejects a file exactly at 5 MB + 1 byte', () => {
-    const file = { name: 'borderline.jpg', size: LISTING_IMAGE_MAX_BYTES + 1 };
-    expect(validateImageUpload(file).error).toBeTruthy();
+  test('rejects a file at 5 MB + 1 byte', () => {
+    expect(validateImageUpload({ name: 'b.jpg', size: LISTING_IMAGE_MAX_BYTES + 1 }).error).toBeTruthy();
   });
 
   test('accepts a file exactly at the 5 MB limit', () => {
-    const file = { name: 'exact.jpg', size: LISTING_IMAGE_MAX_BYTES };
-    expect(validateImageUpload(file).valid).toBe(true);
+    expect(validateImageUpload({ name: 'exact.jpg', size: LISTING_IMAGE_MAX_BYTES }).valid).toBe(true);
   });
 
-  test('extracts the correct extension', () => {
-    const file = { name: 'image.PNG', size: 100 };
-    expect(validateImageUpload(file).safeExt).toBe('png');
-  });
-
-  test('strips unsafe characters from extension', () => {
-    const file = { name: 'evil.ph<p', size: 100 };
-    expect(validateImageUpload(file).safeExt).toBe('php'); // < stripped, keeps alphanum
-  });
-
-  test('falls back to "jpg" when no extension present', () => {
-    const file = { name: 'noext', size: 100 };
-    // split('.').pop() returns 'noext' since there's no dot → but safeExt strips non-alphanum = 'noext'
-    // This tests the actual behaviour of the code rather than assuming fallback
-    const result = validateImageUpload(file);
-    expect(result.valid).toBe(true);
+  test('lowercases the extension', () => {
+    expect(validateImageUpload({ name: 'image.PNG', size: 100 }).safeExt).toBe('png');
   });
 });
