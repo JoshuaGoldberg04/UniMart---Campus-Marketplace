@@ -1,6 +1,7 @@
 {
   "devDependencies": {
-    "jest": "^30.3.0"
+    "jest": "^30.3.0",
+    "jest-environment-jsdom": "^30.3.0"
   },
   "name": "unimart---campus-marketplace",
   "version": "1.0.0",
@@ -192,8 +193,8 @@
     "yocto-queue": "^0.1.0"
   },
   "scripts": {
-  "test": "jest"
-},
+    "test": "jest"
+  },
   "repository": {
     "type": "git",
     "url": "git+https://JoshuaGoldberg04@github.com/JoshuaGoldberg04/UniMart---Campus-Marketplace.git"
