@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Trade Facility - UniMart</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+  <style>
+    .facility-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 14px;
+      margin-bottom: 22px;
+    }
+    .metric-card,
+    .facility-panel {
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-sm);
+    }
+    .metric-card { padding: 16px; }
+    .metric-label {
+      font-size: 0.78rem;
+      color: var(--muted);
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+    .metric-value {
+      margin-top: 8px;
+      font-size: 1.8rem;
+      font-weight: 800;
+      color: var(--ink);
+    }
+    .facility-layout {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 18px;
+      margin-bottom: 18px;
+    }
+    .panel-header {
+      padding: 16px;
+      border-bottom: 1px solid var(--border);
+    }
+    .panel-title {
+      font-size: 1rem;
+      font-weight: 800;
+      color: var(--ink);
+    }
+    .panel-copy {
+      margin-top: 4px;
+      font-size: 0.84rem;
+      color: var(--muted);
+    }
+    .booking-list {
+      display: flex;
+      flex-direction: column;
+    }
+    .booking-card {
+      padding: 16px;
+      border-bottom: 1px solid var(--sand);
+      display: grid;
+      grid-template-columns: 48px minmax(0, 1fr);
+      gap: 12px;
+    }
+    .booking-thumb {
+      width: 48px;
+      height: 48px;
+      border-radius: var(--radius);
+      background: var(--sand);
+      border: 1px solid var(--border);
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--muted);
+      font-size: 0.7rem;
+      font-weight: 700;
+    }
+    .booking-thumb img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    .booking-title {
+      font-weight: 800;
+      color: var(--ink);
+      margin-bottom: 4px;
+    }
+    .booking-meta {
+      color: var(--muted);
+      font-size: 0.82rem;
+      line-height: 1.5;
+    }
+    .booking-footer {
+      grid-column: 1 / -1;
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: center;
+      padding-top: 8px;
+    }
+    .status-pill {
+      display: inline-flex;
+      padding: 5px 10px;
+      border-radius: 999px;
+      background: var(--mint);
+      color: var(--sage);
+      font-weight: 800;
+      font-size: 0.75rem;
+      text-transform: capitalize;
+    }
+    .booking-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      justify-content: flex-end;
+    }
+    .release-input {
+      min-width: 220px;
+      padding: 9px 10px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      font: inherit;
+    }
+    .workflow-note {
+      padding: 16px;
+      color: var(--muted);
+      font-size: 0.9rem;
+      line-height: 1.6;
+    }
+    @media (max-width: 950px) {
+      .facility-grid,
+      .facility-layout {
+        grid-template-columns: 1fr;
+      }
+      .booking-footer {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+      .booking-actions {
+        justify-content: flex-start;
+      }
+    }
+  </style>
+</head>
+<body>
+<div class="overlay" id="sidebar-overlay"></div>
+<div class="app-shell">
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-logo"><img src="unimart-logo.png" alt="UniMart Logo" class="logo-img" /></div>
+    <nav class="sidebar-nav"></nav>
+    <div class="sidebar-footer">
+      <div class="sidebar-user dropdown" data-dropdown-trigger="user-menu">
+        <div class="user-avatar" data-user-initials>?</div>
+        <div class="user-info"><div class="user-name" data-user-name>Loading...</div><div class="user-role" data-user-role></div></div>
+        <div class="dropdown-menu" id="user-menu">
+          <a class="dropdown-item" href="profile.html">My Profile</a>
+          <div class="dropdown-divider"></div>
+          <div class="dropdown-item danger" data-action="signout">Sign out</div>
+        </div>
+      </div>
+    </div>
+  </aside>
+  <div class="main-content">
+    <header class="topbar">
+      <button class="topbar-icon-btn" id="sidebar-toggle" style="display:none"><svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 5h14M3 10h14M3 15h14" stroke-linecap="round"/></svg></button>
+      <span class="topbar-title">Trade Facility</span>
+      <div class="topbar-actions" style="margin-left:auto"><div class="topbar-avatar dropdown" data-dropdown-trigger="topbar-user-menu" data-user-initials>?</div></div>
+      <div class="dropdown-menu" id="topbar-user-menu">
+        <a class="dropdown-item" href="profile.html"><span data-user-name>My Account</span></a>
+        <div class="dropdown-divider"></div>
+        <div class="dropdown-item danger" data-action="signout">Sign out</div>
+      </div>
+    </header>
+    <main class="page-content">
+      <div class="page-header">
+        <h1>Trade Facility Staff Dashboard</h1>
+        <p>Manage drop-offs, collections, and accountable staff handoffs.</p>
+      </div>
+
+      <div class="facility-grid">
+        <div class="metric-card"><div class="metric-label">Drop-offs due</div><div class="metric-value" id="metric-dropoffs">0</div></div>
+        <div class="metric-card"><div class="metric-label">Collections due</div><div class="metric-value" id="metric-collections">0</div></div>
+        <div class="metric-card"><div class="metric-label">Ready now</div><div class="metric-value" id="metric-ready">0</div></div>
+        <div class="metric-card"><div class="metric-label">Released</div><div class="metric-value" id="metric-completed">0</div></div>
+      </div>
+
+      <div class="facility-layout">
+        <section class="facility-panel">
+          <div class="panel-header">
+            <div class="panel-title">Upcoming Drop-Off Bookings</div>
+            <div class="panel-copy">Confirm receipt when the seller drops the item at the facility.</div>
+          </div>
+          <div class="booking-list" id="dropoff-list"></div>
+        </section>
+
+        <section class="facility-panel">
+          <div class="panel-header">
+            <div class="panel-title">Upcoming Collection Bookings</div>
+            <div class="panel-copy">Mark items ready, then release them to the correct collector.</div>
+          </div>
+          <div class="booking-list" id="collection-list"></div>
+        </section>
+      </div>
+
+      <section class="facility-panel">
+        <div class="panel-header">
+          <div class="panel-title">Handover Guidelines</div>
+          <div class="panel-copy">Use these actions to keep each drop-off and collection moving clearly.</div>
+        </div>
+        <div class="workflow-note">
+          Confirm receipt when the seller drops off the item. Mark it ready once the buyer can collect it. Release the item only after checking that the collector matches the expected buyer.
+        </div>
+      </section>
+    </main>
+  </div>
+</div>
+<div class="toast-container" id="toast-container"></div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="auth.js"></script>
+<script src="app.js"></script>
+<script>
+  if (window.innerWidth <= 768) document.getElementById('sidebar-toggle').style.display = 'flex';
+
+  const facilityState = {
+    user: null,
+    dropoffs: [],
+    collections: [],
+  };
+
+  initPage().then(user => {
+    if (!user) return;
+    facilityState.user = user;
+    loadFacilityOverview();
+  });
+
+  async function loadFacilityOverview() {
+    const result = await Auth.getFacilityOverview();
+    if (result.error) {
+      showToast(result.error, 'error');
+      document.getElementById('dropoff-list').innerHTML = renderEmpty('Unable to load drop-off bookings.');
+      document.getElementById('collection-list').innerHTML = renderEmpty('Unable to load collection bookings.');
+      return;
+    }
+
+    facilityState.dropoffs = result.dropoffs || [];
+    facilityState.collections = result.collections || [];
+    document.getElementById('metric-dropoffs').textContent = result.metrics.dropoffs;
+    document.getElementById('metric-collections').textContent = result.metrics.collections;
+    document.getElementById('metric-ready').textContent = result.metrics.ready;
+    document.getElementById('metric-completed').textContent = result.metrics.completed;
+
+    document.getElementById('dropoff-list').innerHTML = facilityState.dropoffs.length
+      ? facilityState.dropoffs.map(renderDropoffBooking).join('')
+      : renderEmpty('No upcoming drop-offs.');
+    document.getElementById('collection-list').innerHTML = facilityState.collections.length
+      ? facilityState.collections.map(renderCollectionBooking).join('')
+      : renderEmpty('No upcoming collections.');
+
+    document.querySelectorAll('[data-workflow-action]').forEach(button => {
+      button.addEventListener('click', () => handleWorkflowAction(button));
+    });
+  }
+
+  function renderDropoffBooking(booking) {
+    return renderBookingCard(booking, `
+      <button class="btn btn-primary" type="button" data-workflow-action="confirm_receipt" data-booking-id="${escapeAttribute(booking.id)}">Confirm receipt</button>
+    `, `Drop-off: ${formatDateTime(booking.dropoffScheduledAt)}`);
+  }
+
+  function renderCollectionBooking(booking) {
+    const readyAction = booking.status === 'received'
+      ? `<button class="btn btn-primary" type="button" data-workflow-action="mark_ready" data-booking-id="${escapeAttribute(booking.id)}">Mark ready</button>`
+      : '';
+    const releaseAction = booking.status === 'ready_for_collection'
+      ? `<input class="release-input" data-release-input="${escapeAttribute(booking.id)}" placeholder="Expected collector ID" value="${escapeAttribute(booking.buyerId)}" />
+         <button class="btn btn-primary" type="button" data-workflow-action="release_item" data-booking-id="${escapeAttribute(booking.id)}">Release item</button>`
+      : '';
+    return renderBookingCard(booking, `${readyAction}${releaseAction}`, `Collection: ${formatDateTime(booking.collectionScheduledAt)}`);
+  }
+
+  function renderBookingCard(booking, actions, scheduleLabel) {
+    return `
+      <article class="booking-card">
+        <div class="booking-thumb">${booking.imageUrl ? `<img src="${escapeAttribute(booking.imageUrl)}" alt="${escapeAttribute(booking.title)}" />` : 'Item'}</div>
+        <div>
+          <div class="booking-title">${escapeHtml(booking.title)}</div>
+          <div class="booking-meta">${escapeHtml(booking.category)} - ${escapeHtml(booking.condition)} - ${formatCurrency(booking.price)}</div>
+          <div class="booking-meta">Seller: ${escapeHtml(booking.sellerName)} | Buyer: ${escapeHtml(booking.buyerName)}</div>
+          <div class="booking-meta">${escapeHtml(scheduleLabel)}</div>
+        </div>
+        <div class="booking-footer">
+          <span class="status-pill">${escapeHtml(formatStatus(booking.status))}</span>
+          <div class="booking-actions">${actions}</div>
+        </div>
+      </article>
+    `;
+  }
+
+  async function handleWorkflowAction(button) {
+    const bookingId = button.dataset.bookingId;
+    const action = button.dataset.workflowAction;
+    const releaseInput = document.querySelector(`[data-release-input="${CSS.escape(bookingId)}"]`);
+    const releaseToUserId = releaseInput?.value.trim();
+
+    button.disabled = true;
+    const originalText = button.textContent;
+    button.textContent = 'Saving...';
+
+    const result = await Auth.updateFacilityBooking({
+      bookingId,
+      staffId: facilityState.user.id,
+      action,
+      releaseToUserId,
+    });
+
+    button.disabled = false;
+    button.textContent = originalText;
+
+    if (result.error) {
+      showToast(result.error, 'error');
+      return;
+    }
+
+    const successMessages = {
+      confirm_receipt: 'Item receipt confirmed.',
+      mark_ready: 'Item marked ready for collection.',
+      release_item: 'Item release confirmed.',
+    };
+    showToast(successMessages[action] || 'Workflow updated.', 'success');
+    loadFacilityOverview();
+  }
+
+  function renderEmpty(message) {
+    return `<div class="empty-state"><h3>${escapeHtml(message)}</h3></div>`;
+  }
+
+  function formatStatus(value) {
+    return formatStatusLabel(value);
+  }
+
+  function formatCurrency(value) {
+    return new Intl.NumberFormat('en-ZA', { style: 'currency', currency: 'ZAR', maximumFractionDigits: 0 }).format(value || 0);
+  }
+
+  function formatDateTime(value) {
+    if (!value) return 'Not scheduled';
+    return new Intl.DateTimeFormat('en-ZA', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }).format(new Date(value));
+  }
+
+  function escapeHtml(value) {
+    return String(value ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+  }
+
+  function escapeAttribute(value) {
+    return escapeHtml(value);
+  }
+</script>
+</body>
+</html>
