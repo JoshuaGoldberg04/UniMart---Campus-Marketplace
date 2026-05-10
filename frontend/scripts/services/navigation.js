@@ -5,7 +5,7 @@
  */
 
 import { getUserRole, isSellerAccount, isBuyerAccount, hasFeature } from '../permissions/rolePermissions.js';
-import { navIcon, escapeHtml } from '../ui/components.js';
+import { navIcon } from '../ui/components.js';
 
 export function renderNavItem(item) {
   return `
