@@ -131,8 +131,10 @@ describe('Navigation Service Module', () => {
       `;
       
       // Mock window.location
-      delete window.location;
-      window.location = { pathname: '/frontend/pages/search.html' };
+      Object.defineProperty(window, 'location', {
+        value: { pathname: '/frontend/pages/search.html' },
+        writable: true
+      });
       
       setActiveNav();
       
