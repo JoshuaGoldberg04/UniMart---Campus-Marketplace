@@ -16,9 +16,12 @@ jobs:
         with:
           node-version: 20
 
-      - run: npm install
+      - name: Install dependencies
+        run: npm install
 
-      - run: npm test -- --coverage
+      # ✅ Updated for ES6 modules - uses the npm script from package.json
+      - name: Run tests with coverage
+        run: npm run test:coverage
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v4
@@ -27,3 +30,21 @@ jobs:
           files: ./coverage/lcov.info
           fail_ci_if_error: true
           verbose: true
+
+      # Optional: Upload coverage as artifact for manual review
+      - name: Upload coverage reports
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: coverage-report
+          path: coverage/
+
+      # Optional: Comment PR with coverage summary
+      - name: Coverage Summary
+        if: github.event_name == 'pull_request'
+        run: |
+          echo "## Test Coverage Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+          npm run test:coverage -- --coverageReporters=text-summary 2>&1 | grep -A 10 "Coverage summary" >> $GITHUB_STEP_SUMMARY || true
+          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY

@@ -1,4 +1,4 @@
-name: Deploy static site to Azure App Service
+name: Deploy to Azure App Service
 
 on:
   push:
@@ -11,7 +11,24 @@ permissions:
   contents: read
 
 jobs:
+  # Run tests first before deploying
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      
+      - run: npm install
+      
+      - name: Run tests
+        run: npm test
+
+  # Deploy only if tests pass
   deploy:
+    needs: test
     runs-on: ubuntu-latest
 
     steps:
@@ -25,6 +42,7 @@ jobs:
           tenant-id: ${{ secrets.AZURE_TENANT_ID }}
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
+      # ✅ Deploy the frontend folder structure
       - name: Deploy to Azure Web App
         uses: azure/webapps-deploy@v3
         with:
