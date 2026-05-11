@@ -7,7 +7,12 @@
 </head>
 <body>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
-  <script src="auth.js"></script>
+  <script type="module">
+    import { Auth, initializeSupabase } from '../scripts/auth.js';
+    const _sb = initializeSupabase(window.supabase);
+    window._sb = _sb;
+    window.Auth = Auth;
+  </script>
   <script>
     (async function () {
       try {

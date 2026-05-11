@@ -6,7 +6,7 @@
   <title>Create Account — UniMart</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="styles.css" />
+  <link rel="stylesheet" href="../styles/styles.css" />
   <style>
     .auth-step { display: none; }
     .auth-step.active { display: block; }
@@ -20,7 +20,7 @@
  
     <!-- Logo -->
     <div class="auth-logo">
-  <img src="unimart-logo.png" alt="UniMart Logo" class="logo-img" />
+  <img src="../assets/unimart-logo.png" alt="UniMart Logo" class="logo-img" />
 </div>
  
     <!-- ===== STEP 1 — Account details ===== -->
@@ -207,7 +207,12 @@
   </div><!-- /auth-card -->
  
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
-  <script src="auth.js"></script>
+  <script type="module">
+    import { Auth, initializeSupabase } from '../scripts/auth.js';
+    const _sb = initializeSupabase(window.supabase);
+    window._sb = _sb;
+    window.Auth = Auth;
+  </script>
   <script>
     // Redirect if already logged in
     Auth.getUser().then(user => { if (user) window.location.href = getLandingPage(user); });

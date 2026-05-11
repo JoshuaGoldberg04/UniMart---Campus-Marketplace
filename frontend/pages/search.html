@@ -6,7 +6,7 @@
   <title>Search Listings - UniMart</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="styles.css" />
+  <link rel="stylesheet" href="../styles/styles.css" />
   <style>
     .market-toolbar {
       display: flex;
@@ -342,7 +342,7 @@
 <div class="app-shell">
   <aside class="sidebar" id="sidebar">
     <div class="sidebar-logo">
-      <img src="unimart-logo.png" alt="UniMart Logo" class="logo-img" />
+      <img src="../assets/unimart-logo.png" alt="UniMart Logo" class="logo-img" />
     </div>
 
     <nav class="sidebar-nav">
@@ -560,8 +560,14 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
-<script src="auth.js"></script>
-<script src="app.js"></script>
+<script type="module">
+    import { Auth, initializeSupabase } from '../scripts/auth.js';
+    import * as App from '../scripts/app.js';
+    const _sb = initializeSupabase(window.supabase);
+    window._sb = _sb;
+    window.Auth = Auth;
+    window.App = App;
+  </script>
 <script>
   if (window.innerWidth <= 768) {
     document.getElementById('sidebar-toggle').style.display = 'flex';
