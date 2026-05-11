@@ -23,12 +23,16 @@
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
   <script type="module">
-    import { Auth, initializeSupabase } from '../scripts/auth.js';
+    // Import Auth module
+    import { Auth, initializeSupabase, getSupabaseClient } from '../scripts/auth.js';
+    
+    // Initialize Supabase
     const _sb = initializeSupabase(window.supabase);
     window._sb = _sb;
     window.Auth = Auth;
-  </script>
-  <script>
+    
+    // Page code
+    
     function getLandingPage(user) {
       if (user?.userRole === 'admin') return 'admin.html';
       if (user?.userRole === 'staff') return 'facility.html';
@@ -47,6 +51,7 @@
 
       window.location.href = getLandingPage(result.user);
     })();
+  
   </script>
 </body>
 </html>

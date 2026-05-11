@@ -537,14 +537,18 @@
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <script type="module">
-    import { Auth, initializeSupabase } from '../scripts/auth.js';
+    // Import modules
+    import { Auth, initializeSupabase, getSupabaseClient } from '../scripts/auth.js';
     import * as App from '../scripts/app.js';
+    
+    // Initialize Supabase
     const _sb = initializeSupabase(window.supabase);
     window._sb = _sb;
     window.Auth = Auth;
     window.App = App;
-  </script>
-<script>
+    
+    // Page code
+    
   if (window.innerWidth <= 768) {
     document.getElementById('sidebar-toggle').style.display = 'flex';
   }
@@ -868,6 +872,7 @@
   function escapeAttribute(value) {
     return escapeHtml(value);
   }
-</script>
+
+  </script>
 </body>
 </html>

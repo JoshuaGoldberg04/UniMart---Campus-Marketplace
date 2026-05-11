@@ -208,12 +208,16 @@
  
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
   <script type="module">
-    import { Auth, initializeSupabase } from '../scripts/auth.js';
+    // Import Auth module
+    import { Auth, initializeSupabase, getSupabaseClient } from '../scripts/auth.js';
+    
+    // Initialize Supabase
     const _sb = initializeSupabase(window.supabase);
     window._sb = _sb;
     window.Auth = Auth;
-  </script>
-  <script>
+    
+    // Page code
+    
     // Redirect if already logged in
     Auth.getUser().then(user => { if (user) window.location.href = getLandingPage(user); });
  
@@ -472,6 +476,7 @@
       if (user?.accountType === 'seller' || user?.accountType === 'seller_buyer') return 'dashboard.html';
       return 'search.html';
     }
+  
   </script>
 </body>
 </html>

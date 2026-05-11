@@ -129,12 +129,16 @@
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
   <script type="module">
-    import { Auth, initializeSupabase } from '../scripts/auth.js';
+    // Import Auth module
+    import { Auth, initializeSupabase, getSupabaseClient } from '../scripts/auth.js';
+    
+    // Initialize Supabase
     const _sb = initializeSupabase(window.supabase);
     window._sb = _sb;
     window.Auth = Auth;
-  </script>
-  <script>
+    
+    // Page code
+    
     const stepIds = ['step-login', 'step-forgot-password', 'step-reset-password'];
     const recoveryHashPattern = /type=recovery/;
     let recoveryMode = false;
@@ -395,6 +399,7 @@
         }
       }, 500);
     }
+  
   </script>
 </body>
 </html>

@@ -19,14 +19,18 @@
 </div>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <script type="module">
-    import { Auth, initializeSupabase } from '../scripts/auth.js';
+    // Import modules
+    import { Auth, initializeSupabase, getSupabaseClient } from '../scripts/auth.js';
     import * as App from '../scripts/app.js';
+    
+    // Initialize Supabase
     const _sb = initializeSupabase(window.supabase);
     window._sb = _sb;
     window.Auth = Auth;
     window.App = App;
-  </script>
-<script>
+    
+    // Page code
+    
   Auth.getUser().then(user => {
     if (!user) {
       window.location.replace('login.html');
@@ -36,6 +40,7 @@
       window.location.href = getRoleLandingPage(user);
     });
   });
-</script>
+
+  </script>
 </body>
 </html>
