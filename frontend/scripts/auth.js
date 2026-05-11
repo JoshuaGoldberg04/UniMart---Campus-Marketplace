@@ -469,13 +469,34 @@ export async function startConversation({ listingId, buyerId, initialMessage }) 
     conversation = inserted.data;
   }
 
-  const sent = await sendMessage({ conversationId: conversation.id, senderId: buyerId, body: initialMessage });
+  const sent = await sendMessage({ conversationId: _conversationId(conversation), senderId: buyerId, body: initialMessage });
   if (sent.error) return sent;
   return { success: true, conversation };
 }
 
 function _uniqueValues(values = []) {
   return [...new Set(values.filter(Boolean))];
+}
+
+function _conversationId(row = {}) {
+  return row.conversation_id || row.id;
+}
+
+async function _updateConversationTimestamp(conversationId, timestamp) {
+  let { error } = await _sb
+    .from('conversations')
+    .update({ last_message_at: timestamp })
+    .eq('conversation_id', conversationId);
+
+  if (error && /conversation_id/i.test(error.message || '')) {
+    const fallback = await _sb
+      .from('conversations')
+      .update({ last_message_at: timestamp })
+      .eq('id', conversationId);
+    error = fallback.error;
+  }
+
+  if (error) console.warn('Failed to update conversation timestamp:', error.message);
 }
 
 async function _fetchUsersByIds(userIds = []) {
@@ -528,7 +549,7 @@ function toConversation(row = {}, currentUserId) {
   const isBuyer = row.buyer_id === currentUserId;
   const other = isBuyer ? seller : buyer;
   return {
-    id: row.id,
+    id: _conversationId(row),
     listingId: row.listing_id,
     listingTitle: listing.title || row.listing_title || 'Listing',
     listingImageUrl: listing.image_url || listing.imageUrl || '',
@@ -553,7 +574,7 @@ async function _hydrateConversations(rows = [], currentUserId) {
     const unread = await _sb
       .from('messages')
       .select('id', { count: 'exact', head: true })
-      .eq('conversation_id', row.id)
+      .eq('conversation_id', _conversationId(row))
       .neq('sender_id', currentUserId)
       .is('read_at', null);
 
@@ -581,27 +602,48 @@ export async function getConversations(userId) {
 }
 
 export async function getConversationMessages({ conversationId, userId, markRead = false }) {
-  const convResult = await _sb
+  let convResult = await _sb
     .from('conversations')
     .select('*')
-    .eq('id', conversationId)
+    .eq('conversation_id', conversationId)
     .maybeSingle();
 
-  if (convResult.error) return { error: convResult.error.message };
-  if (!convResult.data || ![convResult.data.buyer_id, convResult.data.seller_id].includes(userId)) return { error: 'Conversation not found.' };
-
-  if (markRead) {
-    await _sb.from('messages').update({ read_at: new Date().toISOString() }).eq('conversation_id', conversationId).neq('sender_id', userId).is('read_at', null);
+  if (convResult.error && /conversation_id/i.test(convResult.error.message || '')) {
+    convResult = await _sb
+      .from('conversations')
+      .select('*')
+      .eq('id', conversationId)
+      .maybeSingle();
   }
 
-  const { data, error } = await _sb.from('messages').select('*').eq('conversation_id', conversationId).order('created_at', { ascending: true });
+  if (convResult.error) return { error: convResult.error.message };
+  const conversationRow = convResult.data;
+  if (!conversationRow || ![conversationRow.buyer_id, conversationRow.seller_id].includes(userId)) return { error: 'Conversation not found.' };
+
+  const resolvedConversationId = _conversationId(conversationRow);
+
+  if (markRead) {
+    await _sb
+      .from('messages')
+      .update({ read_at: new Date().toISOString() })
+      .eq('conversation_id', resolvedConversationId)
+      .neq('sender_id', userId)
+      .is('read_at', null);
+  }
+
+  const { data, error } = await _sb
+    .from('messages')
+    .select('*')
+    .eq('conversation_id', resolvedConversationId)
+    .order('created_at', { ascending: true });
+
   if (error) return { error: error.message };
 
-  const [conversation] = await _hydrateConversations([convResult.data], userId);
+  const [conversation] = await _hydrateConversations([conversationRow], userId);
   return {
     conversation,
     messages: (data || []).map(message => ({
-      id: message.id,
+      id: message.message_id || message.id,
       conversationId: message.conversation_id,
       senderId: message.sender_id,
       body: message.body || message.message || message.content || '',
@@ -619,7 +661,7 @@ export async function sendMessage({ conversationId, senderId, body }) {
     .select()
     .single();
   if (error) return { error: error.message };
-  await _sb.from('conversations').update({ last_message_at: now }).eq('id', conversationId);
+  await _updateConversationTimestamp(conversationId, now);
   return { success: true, message: data };
 }
 
