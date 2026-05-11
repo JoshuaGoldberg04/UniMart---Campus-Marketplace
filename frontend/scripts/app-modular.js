@@ -53,8 +53,8 @@ import {
   setUnreadMessageBadge
 } from './services/navigation.js';
 
-// Import auth (will be available globally or imported separately)
-// We don't import it here to avoid circular dependencies
+// Import auth directly so modular pages do not depend on fragile globals
+import { Auth } from './auth.js';
 
 /**
  * Initialize the application page
@@ -169,6 +169,47 @@ export {
   setActiveNav,
   setUnreadMessageBadge
 };
+
+
+// Backwards compatibility for the existing page scripts.
+// The modular split moved helpers into imports, while pages still call helpers like initPage(), showToast(), etc. directly.
+const AppApi = {
+  initPage,
+  validateEmail,
+  validatePassword,
+  validateRequired,
+  validatePrice,
+  validateStudentNumber,
+  formatDate,
+  formatDateTime,
+  formatPrice,
+  formatStatusLabel,
+  escapeHtml,
+  ROLE_PERMISSIONS,
+  FEATURE_TO_PERMISSION,
+  getUserRole,
+  isSellerAccount,
+  isBuyerAccount,
+  hasFeature,
+  getAllowedPages,
+  getCurrentPage,
+  canAccessPage,
+  getRoleLandingPage,
+  iconMarkup,
+  navIcon,
+  showToast,
+  showNotification,
+  initDropdowns,
+  initMobileSidebar,
+  buildDynamicNavigation,
+  setActiveNav,
+  setUnreadMessageBadge
+};
+
+if (typeof window !== 'undefined') {
+  window.App = { ...(window.App || {}), ...AppApi };
+  Object.assign(window, AppApi);
+}
 
 // Default export for convenience
 export default {

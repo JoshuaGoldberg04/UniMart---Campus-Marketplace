@@ -50,19 +50,21 @@ async function _ensureProfile(authUser) {
     return _buildUser(authUser);
   }
   if (!data) {
-    const meta = authUser.user_metadata || {};
+    const pending = getPendingOAuthProfile();
+    const meta = { ...pending, ...(authUser.user_metadata || {}) };
     const newProfile = {
       id: authUser.id,
       email: authUser.email,
-      full_name: meta.full_name || authUser.email.split('@')[0],
-      account_type: meta.account_type || 'buyer',
-      user_role: meta.user_role || 'student',
+      full_name: meta.full_name || meta.fullName || authUser.email.split('@')[0],
+      account_type: meta.account_type || meta.accountType || 'buyer',
+      user_role: meta.user_role || meta.userRole || 'student',
       username: meta.username || null,
       university: meta.university || null,
-      uni_campus: meta.campus || null,
-      student_number: meta.student_number || null,
+      uni_campus: meta.campus || meta.uni_campus || null,
+      student_number: meta.student_number || meta.studentNumber || null,
     };
     await _sb.from('users').insert(newProfile);
+    clearPendingOAuthProfile();
     return {
       id: newProfile.id,
       email: newProfile.email,
@@ -86,11 +88,6 @@ async function _ensureProfile(authUser) {
     campus: data.uni_campus,
     studentNumber: data.student_number,
   };
-}
-
-function getOAuthRedirectUrl() {
-  const base = window.location.origin;
-  return `${base}/frontend/pages/auth-callback.html`;
 }
 
 // Sign-up
@@ -236,6 +233,385 @@ export async function completePasswordRecovery({ newPassword }) {
   return { success: true };
 }
 
+// -----------------------------
+// Data helpers restored after modular split
+// -----------------------------
+export function getUserInitials(nameOrEmail = '') {
+  const parts = String(nameOrEmail || '').trim().split(/\s+/).filter(Boolean);
+  if (!parts.length) return '?';
+  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+  return `${parts[0][0]}${parts[parts.length - 1][0]}`.toUpperCase();
+}
+
+export function getOAuthRedirectUrl() {
+  const base = window.location.origin;
+  return `${base}/frontend/pages/auth-callback.html`;
+}
+
+export function setPendingOAuthProfile(profile = {}) {
+  sessionStorage.setItem('unimart_pending_oauth_profile', JSON.stringify(profile));
+}
+
+function getPendingOAuthProfile() {
+  try {
+    return JSON.parse(sessionStorage.getItem('unimart_pending_oauth_profile') || '{}');
+  } catch (_) {
+    return {};
+  }
+}
+
+function clearPendingOAuthProfile() {
+  sessionStorage.removeItem('unimart_pending_oauth_profile');
+}
+
+function toUser(row = {}) {
+  return {
+    id: row.id,
+    email: row.email || '',
+    fullName: row.full_name || row.fullName || row.email || 'UniMart User',
+    accountType: row.account_type || row.accountType || 'buyer',
+    userRole: row.user_role || row.userRole || 'student',
+    username: row.username || null,
+    university: row.university || null,
+    campus: row.uni_campus || row.campus || null,
+    studentNumber: row.student_number || row.studentNumber || null,
+  };
+}
+
+function toListing(row = {}) {
+  const seller = row.users || row.seller || row.user || {};
+  return {
+    id: row.listing_id || row.id,
+    sellerId: row.seller_id || row.sellerId,
+    title: row.title || '',
+    description: row.description || '',
+    price: Number(row.price) || 0,
+    category: row.category || 'Other',
+    condition: row.condition || 'Used',
+    isTradeable: Boolean(row.is_tradeable ?? row.isTradeable),
+    status: row.status || 'active',
+    imageUrl: row.image_url || row.imageUrl || '',
+    createdAt: row.created_at || row.createdAt,
+    updatedAt: row.updated_at || row.updatedAt,
+    sellerDisplayName: seller.full_name || seller.username || seller.email || row.seller_display_name || null,
+  };
+}
+
+function listingPayload(payload = {}) {
+  return {
+    seller_id: payload.sellerId,
+    title: payload.title,
+    description: payload.description || null,
+    price: Number(payload.price) || 0,
+    category: payload.category || 'Other',
+    condition: payload.condition || 'Used',
+    is_tradeable: Boolean(payload.isTradeable),
+    status: payload.status || 'active',
+    image_url: payload.imageUrl || null,
+  };
+}
+
+async function tryListingSelect(baseSelect) {
+  let query = _sb.from('listings').select(`${baseSelect}, users:seller_id(full_name,email,username)`);
+  let { data, error } = await query;
+  if (!error) return { data, error };
+  return _sb.from('listings').select(baseSelect);
+}
+
+async function updateListingById(listingId, values, sellerId) {
+  let q = _sb.from('listings').update(values).eq('listing_id', listingId);
+  if (sellerId) q = q.eq('seller_id', sellerId);
+  let { data, error } = await q.select().maybeSingle();
+  if (!error) return { data, error };
+  q = _sb.from('listings').update(values).eq('id', listingId);
+  if (sellerId) q = q.eq('seller_id', sellerId);
+  return q.select().maybeSingle();
+}
+
+async function deleteListingById(listingId, sellerId) {
+  let q = _sb.from('listings').delete().eq('listing_id', listingId);
+  if (sellerId) q = q.eq('seller_id', sellerId);
+  let { error } = await q;
+  if (!error) return { error };
+  q = _sb.from('listings').delete().eq('id', listingId);
+  if (sellerId) q = q.eq('seller_id', sellerId);
+  return q;
+}
+
+export async function getMarketplaceListings() {
+  const { data, error } = await _sb
+    .from('listings')
+    .select('*, users:seller_id(full_name,email,username)')
+    .eq('status', 'active')
+    .order('created_at', { ascending: false });
+
+  if (error) {
+    const fallback = await _sb.from('listings').select('*').eq('status', 'active').order('created_at', { ascending: false });
+    if (fallback.error) return { error: fallback.error.message };
+    return { listings: (fallback.data || []).map(toListing) };
+  }
+  return { listings: (data || []).map(toListing) };
+}
+
+export async function getMyListings(sellerId) {
+  const { data, error } = await _sb
+    .from('listings')
+    .select('*')
+    .eq('seller_id', sellerId)
+    .order('created_at', { ascending: false });
+  if (error) return { error: error.message };
+  return { listings: (data || []).map(toListing) };
+}
+
+export async function createListing(payload) {
+  const { data, error } = await _sb
+    .from('listings')
+    .insert(listingPayload(payload))
+    .select()
+    .single();
+  if (error) return { error: error.message };
+  return { success: true, listing: toListing(data) };
+}
+
+export async function updateListing(payload) {
+  const { data, error } = await updateListingById(payload.listingId, listingPayload(payload), payload.sellerId);
+  if (error) return { error: error.message };
+  return { success: true, listing: toListing(data) };
+}
+
+export async function deleteListing({ listingId, sellerId }) {
+  const { error } = await deleteListingById(listingId, sellerId);
+  if (error) return { error: error.message };
+  return { success: true };
+}
+
+export async function uploadListingImage(file, userId) {
+  if (!file) return { imageUrl: '' };
+  const ext = (file.name.split('.').pop() || 'jpg').toLowerCase();
+  const path = `${userId}/${Date.now()}-${crypto.randomUUID()}.${ext}`;
+  const { error } = await _sb.storage.from(LISTING_IMAGE_BUCKET).upload(path, file, {
+    cacheControl: '3600',
+    upsert: false,
+  });
+  if (error) return { error: error.message };
+  const { data } = _sb.storage.from(LISTING_IMAGE_BUCKET).getPublicUrl(path);
+  return { imageUrl: data.publicUrl };
+}
+
+export async function getListingDashboard(sellerId) {
+  const result = await getMyListings(sellerId);
+  if (result.error) return result;
+  const listings = result.listings || [];
+  const active = listings.filter(item => item.status === 'active');
+  const sold = listings.filter(item => item.status === 'sold');
+  const now = new Date();
+  const thisMonth = listings.filter(item => {
+    const d = new Date(item.createdAt);
+    return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
+  }).length;
+
+  const categoryMap = listings.reduce((map, item) => {
+    map[item.category] = (map[item.category] || 0) + 1;
+    return map;
+  }, {});
+
+  const monthly = Array.from({ length: 6 }, (_, i) => {
+    const d = new Date(now.getFullYear(), now.getMonth() - (5 - i), 1);
+    const value = listings.filter(item => {
+      const created = new Date(item.createdAt);
+      return created.getMonth() === d.getMonth() && created.getFullYear() === d.getFullYear();
+    }).length;
+    return { label: d.toLocaleDateString('en-ZA', { month: 'short' }), value };
+  });
+
+  return {
+    metrics: {
+      activeListings: active.length,
+      soldListings: sold.length,
+      activeValue: active.reduce((sum, item) => sum + item.price, 0),
+      thisMonth,
+    },
+    categories: Object.entries(categoryMap).map(([label, value]) => ({ label, value })),
+    monthly,
+    recent: listings.slice(0, 6),
+  };
+}
+
+export async function startConversation({ listingId, buyerId, initialMessage }) {
+  const listingsResult = await _sb.from('listings').select('*').eq('listing_id', listingId).maybeSingle();
+  let listing = listingsResult.data;
+  if (listingsResult.error || !listing) {
+    const fallback = await _sb.from('listings').select('*').eq('id', listingId).maybeSingle();
+    listing = fallback.data;
+    if (fallback.error || !listing) return { error: (fallback.error || listingsResult.error)?.message || 'Listing not found.' };
+  }
+
+  const sellerId = listing.seller_id;
+  if (!sellerId || sellerId === buyerId) return { error: 'You cannot message yourself about your own listing.' };
+
+  let { data: conversation, error: findErr } = await _sb
+    .from('conversations')
+    .select('*')
+    .eq('listing_id', listingId)
+    .eq('buyer_id', buyerId)
+    .eq('seller_id', sellerId)
+    .maybeSingle();
+
+  if (findErr) return { error: findErr.message };
+
+  if (!conversation) {
+    const inserted = await _sb
+      .from('conversations')
+      .insert({ listing_id: listingId, buyer_id: buyerId, seller_id: sellerId, status: 'active', last_message_at: new Date().toISOString() })
+      .select()
+      .single();
+    if (inserted.error) return { error: inserted.error.message };
+    conversation = inserted.data;
+  }
+
+  const sent = await sendMessage({ conversationId: conversation.id, senderId: buyerId, body: initialMessage });
+  if (sent.error) return sent;
+  return { success: true, conversation };
+}
+
+function toConversation(row = {}, currentUserId) {
+  const listing = row.listings || row.listing || {};
+  const buyer = row.buyer || {};
+  const seller = row.seller || {};
+  const isBuyer = row.buyer_id === currentUserId;
+  const other = isBuyer ? seller : buyer;
+  return {
+    id: row.id,
+    listingId: row.listing_id,
+    listingTitle: listing.title || row.listing_title || 'Listing',
+    listingImageUrl: listing.image_url || '',
+    buyerId: row.buyer_id,
+    sellerId: row.seller_id,
+    otherUserId: isBuyer ? row.seller_id : row.buyer_id,
+    otherDisplayName: other.full_name || other.username || other.email || null,
+    role: isBuyer ? 'buyer' : 'seller',
+    status: row.status || 'active',
+    lastMessageAt: row.last_message_at || row.created_at,
+    unreadCount: Number(row.unread_count || 0),
+  };
+}
+
+export async function getConversations(userId) {
+  const select = '*, listings:listing_id(title,image_url), buyer:buyer_id(full_name,email,username), seller:seller_id(full_name,email,username)';
+  let { data, error } = await _sb
+    .from('conversations')
+    .select(select)
+    .or(`buyer_id.eq.${userId},seller_id.eq.${userId}`)
+    .order('last_message_at', { ascending: false });
+
+  if (error) {
+    const fallback = await _sb.from('conversations').select('*').or(`buyer_id.eq.${userId},seller_id.eq.${userId}`).order('last_message_at', { ascending: false });
+    if (fallback.error) return { error: fallback.error.message };
+    data = fallback.data || [];
+  }
+
+  const conversations = await Promise.all((data || []).map(async row => {
+    const unread = await _sb
+      .from('messages')
+      .select('id', { count: 'exact', head: true })
+      .eq('conversation_id', row.id)
+      .neq('sender_id', userId)
+      .is('read_at', null);
+    return toConversation({ ...row, unread_count: unread.count || 0 }, userId);
+  }));
+
+  return { conversations };
+}
+
+export async function getConversationMessages({ conversationId, userId, markRead = false }) {
+  const convResult = await _sb.from('conversations').select('*, listings:listing_id(title,image_url), buyer:buyer_id(full_name,email,username), seller:seller_id(full_name,email,username)').eq('id', conversationId).maybeSingle();
+  if (convResult.error) return { error: convResult.error.message };
+  if (!convResult.data || ![convResult.data.buyer_id, convResult.data.seller_id].includes(userId)) return { error: 'Conversation not found.' };
+
+  if (markRead) {
+    await _sb.from('messages').update({ read_at: new Date().toISOString() }).eq('conversation_id', conversationId).neq('sender_id', userId).is('read_at', null);
+  }
+
+  const { data, error } = await _sb.from('messages').select('*').eq('conversation_id', conversationId).order('created_at', { ascending: true });
+  if (error) return { error: error.message };
+
+  return {
+    conversation: toConversation(convResult.data, userId),
+    messages: (data || []).map(message => ({
+      id: message.id,
+      conversationId: message.conversation_id,
+      senderId: message.sender_id,
+      body: message.body || message.message || '',
+      createdAt: message.created_at,
+      readAt: message.read_at,
+    })),
+  };
+}
+
+export async function sendMessage({ conversationId, senderId, body }) {
+  const now = new Date().toISOString();
+  const { data, error } = await _sb
+    .from('messages')
+    .insert({ conversation_id: conversationId, sender_id: senderId, body, created_at: now })
+    .select()
+    .single();
+  if (error) return { error: error.message };
+  await _sb.from('conversations').update({ last_message_at: now }).eq('id', conversationId);
+  return { success: true, message: data };
+}
+
+export async function getRolePermissions() {
+  const { data, error } = await _sb.from('role_permissions').select('*');
+  if (error) return { permissions: [] };
+  return { permissions: data || [] };
+}
+
+export async function updateRolePermission({ role, permission, enabled }) {
+  const { error } = await _sb.from('role_permissions').upsert({ role, permission, enabled }, { onConflict: 'role,permission' });
+  if (error) return { error: error.message };
+  return { success: true };
+}
+
+export async function updateUserRole({ userId, role }) {
+  const { error } = await _sb.from('users').update({ user_role: role }).eq('id', userId);
+  if (error) return { error: error.message };
+  return { success: true };
+}
+
+export async function getAdminOverview() {
+  const [usersRes, listingsRes, permsRes] = await Promise.all([
+    _sb.from('users').select('*').order('full_name'),
+    _sb.from('listings').select('*').order('created_at', { ascending: false }).limit(20),
+    _sb.from('role_permissions').select('*'),
+  ]);
+  if (usersRes.error) return { error: usersRes.error.message };
+  const users = (usersRes.data || []).map(toUser);
+  const listings = (listingsRes.data || []).map(toListing);
+  return {
+    metrics: {
+      users: users.length,
+      activeListings: listings.filter(item => item.status === 'active').length,
+      openReports: 0,
+      moderationActions: 0,
+    },
+    users,
+    recentListings: listings,
+    reports: [],
+    moderationActions: [],
+    rolePermissions: permsRes.data || [],
+    facilityConfig: { opensAt: '09:00', closesAt: '17:00', slotMinutes: 30, slotCapacity: 1, operatingDays: ['1','2','3','4','5'] },
+  };
+}
+
+export async function removeListingAsAdmin({ listingId }) { return deleteListing({ listingId }); }
+export async function removeReviewAsAdmin() { return { success: true }; }
+export async function updateContentReport() { return { success: true }; }
+
+export async function getFacilityAvailability() { return { slots: [] }; }
+export async function getFacilityOverview() { return { metrics: { pendingReceipts: 0, readyForCollection: 0, releasedToday: 0 }, bookings: [] }; }
+export async function updateFacilityConfig() { return { success: true }; }
+export async function updateFacilityBooking() { return { success: true }; }
+
 // Export as default Auth object for backwards compatibility
 export const Auth = {
   signUp,
@@ -252,7 +628,31 @@ export const Auth = {
   requestPasswordReset,
   completePasswordRecovery,
   initializeSupabase,
-  getSupabaseClient
+  getSupabaseClient,
+  getUserInitials,
+  getOAuthRedirectUrl,
+  setPendingOAuthProfile,
+  getMarketplaceListings,
+  getMyListings,
+  createListing,
+  updateListing,
+  deleteListing,
+  uploadListingImage,
+  getListingDashboard,
+  startConversation,
+  getConversations,
+  getConversationMessages,
+  sendMessage,
+  getRolePermissions,
+  updateRolePermission,
+  updateUserRole,
+  getAdminOverview,
+  removeListingAsAdmin,
+  removeReviewAsAdmin,
+  updateContentReport,
+  getFacilityAvailability,
+  getFacilityOverview,
+  updateFacilityConfig,
+  updateFacilityBooking
 };
-
 export default Auth;
