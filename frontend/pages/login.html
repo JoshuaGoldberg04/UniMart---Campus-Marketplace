@@ -6,7 +6,7 @@
   <title>Sign In - UniMart</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="styles.css" />
+  <link rel="stylesheet" href="../styles/styles.css" />
   <style>
     .auth-step { display: none; }
     .auth-step.active { display: block; }
@@ -15,7 +15,7 @@
 <body class="auth-page">
   <div class="auth-card">
     <div class="auth-logo">
-      <img src="unimart-logo.png" alt="UniMart Logo" class="logo-img" />
+      <img src="../assets/unimart-logo.png" alt="UniMart Logo" class="logo-img" />
     </div>
 
     <div id="step-login" class="auth-step active">
@@ -128,7 +128,7 @@
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
-  <script src="auth.js"></script>
+  <script src="../scripts/auth.js"></script>
   <script>
     const stepIds = ['step-login', 'step-forgot-password', 'step-reset-password'];
     const recoveryHashPattern = /type=recovery/;
