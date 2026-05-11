@@ -21,6 +21,31 @@ export function getSupabaseClient() {
   return _sb;
 }
 
+// Build page URLs safely for GitHub Pages, local dev, and the deployed /frontend/pages structure.
+// This also corrects older broken redirects that accidentally used /fontend/.
+export function getPageUrl(pageName) {
+  const origin = window.location.origin;
+  const pathname = window.location.pathname.replace('/fontend/', '/frontend/');
+
+  if (pathname.includes('/frontend/pages/')) {
+    const appRoot = pathname.split('/frontend/pages/')[0];
+    return `${origin}${appRoot}/frontend/pages/${pageName}`;
+  }
+
+  if (pathname.includes('/pages/')) {
+    const pageRoot = pathname.split('/pages/')[0];
+    return `${origin}${pageRoot}/pages/${pageName}`;
+  }
+
+  return new URL(pageName, window.location.href).href;
+}
+
+export function redirectToPage(pageName, replace = true) {
+  const url = getPageUrl(pageName);
+  if (replace) window.location.replace(url);
+  else window.location.href = url;
+}
+
 // Helper functions
 function _normalizeUsername(username) {
   if (!username) return null;
@@ -166,14 +191,14 @@ export async function verifyOTP(email, token) {
 // Sign-out
 export async function signOut() {
   await _sb.auth.signOut();
-  window.location.href = '/frontend/pages/login.html';
+  redirectToPage('login.html');
 }
 
 // Session / auth guard
 export async function requireAuth() {
   const { data: { session } } = await _sb.auth.getSession();
   if (!session) {
-    window.location.href = '/frontend/pages/login.html';
+    redirectToPage('login.html');
     return null;
   }
   return _ensureProfile(session.user);
@@ -244,8 +269,7 @@ export function getUserInitials(nameOrEmail = '') {
 }
 
 export function getOAuthRedirectUrl() {
-  const base = window.location.origin;
-  return `${base}/frontend/pages/auth-callback.html`;
+  return getPageUrl('auth-callback.html');
 }
 
 export function setPendingOAuthProfile(profile = {}) {
@@ -734,6 +758,8 @@ export const Auth = {
   completePasswordRecovery,
   initializeSupabase,
   getSupabaseClient,
+  getPageUrl,
+  redirectToPage,
   getUserInitials,
   getOAuthRedirectUrl,
   setPendingOAuthProfile,
