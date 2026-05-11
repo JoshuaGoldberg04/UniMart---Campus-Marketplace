@@ -474,6 +474,53 @@ export async function startConversation({ listingId, buyerId, initialMessage }) 
   return { success: true, conversation };
 }
 
+function _uniqueValues(values = []) {
+  return [...new Set(values.filter(Boolean))];
+}
+
+async function _fetchUsersByIds(userIds = []) {
+  const ids = _uniqueValues(userIds);
+  if (!ids.length) return {};
+
+  const { data, error } = await _sb
+    .from('users')
+    .select('id,full_name,email,username')
+    .in('id', ids);
+
+  if (error) {
+    console.warn('Failed to hydrate conversation users:', error.message);
+    return {};
+  }
+
+  return Object.fromEntries((data || []).map(user => [user.id, user]));
+}
+
+async function _fetchListingsByIds(listingIds = []) {
+  const ids = _uniqueValues(listingIds);
+  if (!ids.length) return {};
+
+  let { data, error } = await _sb
+    .from('listings')
+    .select('listing_id,title,image_url')
+    .in('listing_id', ids);
+
+  if (error) {
+    const fallback = await _sb
+      .from('listings')
+      .select('id,title,image_url')
+      .in('id', ids);
+    data = fallback.data || [];
+    error = fallback.error;
+  }
+
+  if (error) {
+    console.warn('Failed to hydrate conversation listings:', error.message);
+    return {};
+  }
+
+  return Object.fromEntries((data || []).map(listing => [listing.listing_id || listing.id, listing]));
+}
+
 function toConversation(row = {}, currentUserId) {
   const listing = row.listings || row.listing || {};
   const buyer = row.buyer || {};
@@ -484,7 +531,7 @@ function toConversation(row = {}, currentUserId) {
     id: row.id,
     listingId: row.listing_id,
     listingTitle: listing.title || row.listing_title || 'Listing',
-    listingImageUrl: listing.image_url || '',
+    listingImageUrl: listing.image_url || listing.imageUrl || '',
     buyerId: row.buyer_id,
     sellerId: row.seller_id,
     otherUserId: isBuyer ? row.seller_id : row.buyer_id,
@@ -496,35 +543,50 @@ function toConversation(row = {}, currentUserId) {
   };
 }
 
-export async function getConversations(userId) {
-  const select = '*, listings:listing_id(title,image_url), buyer:buyer_id(full_name,email,username), seller:seller_id(full_name,email,username)';
-  let { data, error } = await _sb
-    .from('conversations')
-    .select(select)
-    .or(`buyer_id.eq.${userId},seller_id.eq.${userId}`)
-    .order('last_message_at', { ascending: false });
+async function _hydrateConversations(rows = [], currentUserId) {
+  const [usersById, listingsById] = await Promise.all([
+    _fetchUsersByIds(rows.flatMap(row => [row.buyer_id, row.seller_id])),
+    _fetchListingsByIds(rows.map(row => row.listing_id)),
+  ]);
 
-  if (error) {
-    const fallback = await _sb.from('conversations').select('*').or(`buyer_id.eq.${userId},seller_id.eq.${userId}`).order('last_message_at', { ascending: false });
-    if (fallback.error) return { error: fallback.error.message };
-    data = fallback.data || [];
-  }
-
-  const conversations = await Promise.all((data || []).map(async row => {
+  return Promise.all(rows.map(async row => {
     const unread = await _sb
       .from('messages')
       .select('id', { count: 'exact', head: true })
       .eq('conversation_id', row.id)
-      .neq('sender_id', userId)
+      .neq('sender_id', currentUserId)
       .is('read_at', null);
-    return toConversation({ ...row, unread_count: unread.count || 0 }, userId);
-  }));
 
+    return toConversation({
+      ...row,
+      listing: listingsById[row.listing_id] || {},
+      buyer: usersById[row.buyer_id] || {},
+      seller: usersById[row.seller_id] || {},
+      unread_count: unread.count || 0,
+    }, currentUserId);
+  }));
+}
+
+export async function getConversations(userId) {
+  const { data, error } = await _sb
+    .from('conversations')
+    .select('*')
+    .or(`buyer_id.eq.${userId},seller_id.eq.${userId}`)
+    .order('last_message_at', { ascending: false });
+
+  if (error) return { error: error.message };
+
+  const conversations = await _hydrateConversations(data || [], userId);
   return { conversations };
 }
 
 export async function getConversationMessages({ conversationId, userId, markRead = false }) {
-  const convResult = await _sb.from('conversations').select('*, listings:listing_id(title,image_url), buyer:buyer_id(full_name,email,username), seller:seller_id(full_name,email,username)').eq('id', conversationId).maybeSingle();
+  const convResult = await _sb
+    .from('conversations')
+    .select('*')
+    .eq('id', conversationId)
+    .maybeSingle();
+
   if (convResult.error) return { error: convResult.error.message };
   if (!convResult.data || ![convResult.data.buyer_id, convResult.data.seller_id].includes(userId)) return { error: 'Conversation not found.' };
 
@@ -535,13 +597,14 @@ export async function getConversationMessages({ conversationId, userId, markRead
   const { data, error } = await _sb.from('messages').select('*').eq('conversation_id', conversationId).order('created_at', { ascending: true });
   if (error) return { error: error.message };
 
+  const [conversation] = await _hydrateConversations([convResult.data], userId);
   return {
-    conversation: toConversation(convResult.data, userId),
+    conversation,
     messages: (data || []).map(message => ({
       id: message.id,
       conversationId: message.conversation_id,
       senderId: message.sender_id,
-      body: message.body || message.message || '',
+      body: message.body || message.message || message.content || '',
       createdAt: message.created_at,
       readAt: message.read_at,
     })),
