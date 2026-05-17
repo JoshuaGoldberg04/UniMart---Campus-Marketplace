@@ -1,12 +1,10 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<!DOCTYPE html><html lang="en"><head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Admin Dashboard - UniMart</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="../styles/styles.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../styles/styles.css">
   <style>
     .admin-grid {
       display: grid;
@@ -108,6 +106,88 @@
     }
     .admin-table tr:last-child td {
       border-bottom: 0;
+    }
+    .moderation-list {
+      display: grid;
+      gap: 12px;
+      padding: 14px;
+    }
+    .report-card {
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background: #fff;
+      padding: 14px;
+      display: grid;
+      gap: 12px;
+    }
+    .report-card-header {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: flex-start;
+    }
+    .report-title {
+      color: var(--ink);
+      font-size: 0.94rem;
+      font-weight: 800;
+      line-height: 1.35;
+    }
+    .report-meta {
+      color: var(--muted);
+      font-size: 0.8rem;
+      line-height: 1.45;
+      margin-top: 4px;
+    }
+    .report-reason {
+      border-left: 3px solid var(--sage);
+      padding: 8px 10px;
+      border-radius: var(--radius-sm);
+      background: var(--linen);
+      color: var(--ink);
+      font-size: 0.84rem;
+      line-height: 1.45;
+    }
+    .report-controls {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 10px;
+      align-items: end;
+    }
+    .report-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      justify-content: flex-end;
+    }
+    .report-actions .btn-secondary,
+    .report-actions .btn-danger-soft {
+      min-height: 40px;
+    }
+    .btn-danger-soft {
+      padding: 10px 14px;
+      border: 1px solid #e9b9b2;
+      border-radius: var(--radius);
+      background: #fff7f5;
+      color: #9f3c33;
+      font: inherit;
+      font-weight: 800;
+      cursor: pointer;
+    }
+    .btn-danger-soft:hover {
+      background: #f8e9e7;
+    }
+    @media (max-width: 780px) {
+      .report-card-header,
+      .report-controls {
+        grid-template-columns: 1fr;
+        display: grid;
+      }
+      .report-actions {
+        justify-content: stretch;
+      }
+      .report-actions button {
+        width: 100%;
+      }
     }
     .role-select,
     .admin-input,
@@ -260,6 +340,54 @@
       display: block;
       font-size: 0.82rem;
     }
+    .analytics-grid {
+      display: grid;
+      gap: 14px;
+      padding: 16px;
+    }
+    .analytics-card {
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 14px;
+      background: #fff;
+    }
+    .analytics-title {
+      font-weight: 800;
+      color: var(--ink);
+      margin-bottom: 10px;
+    }
+    .bar-list {
+      display: grid;
+      gap: 9px;
+    }
+    .bar-row {
+      display: grid;
+      grid-template-columns: 86px minmax(0, 1fr) 42px;
+      gap: 10px;
+      align-items: center;
+      color: var(--muted);
+      font-size: 0.8rem;
+    }
+    .bar-track {
+      height: 9px;
+      border-radius: 999px;
+      background: var(--sand);
+      overflow: hidden;
+    }
+    .bar-fill {
+      height: 100%;
+      border-radius: 999px;
+      background: var(--sage);
+    }
+    .summary-list {
+      display: grid;
+      gap: 8px;
+      color: var(--muted);
+      font-size: 0.84rem;
+    }
+    .summary-list strong {
+      color: var(--ink);
+    }
     .empty-row {
       color: var(--muted);
       text-align: center;
@@ -287,97 +415,98 @@
   </style>
 </head>
 <body>
-<div class="overlay" id="sidebar-overlay"></div>
-<div class="app-shell">
+<aside class="overlay" id="sidebar-overlay"></aside>
+<section class="app-shell">
   <aside class="sidebar" id="sidebar">
-    <div class="sidebar-logo"><img src="../assets/unimart-logo.png" alt="UniMart Logo" class="logo-img" /></div>
+    <figure class="sidebar-logo"><img src="../assets/unimart-logo.png" alt="UniMart Logo" class="logo-img"></figure>
     <nav class="sidebar-nav"></nav>
-    <div class="sidebar-footer">
-      <div class="sidebar-user dropdown" data-dropdown-trigger="user-menu">
-        <div class="user-avatar" data-user-initials>?</div>
-        <div class="user-info"><div class="user-name" data-user-name>Loading...</div><div class="user-role" data-user-role></div></div>
-        <div class="dropdown-menu" id="user-menu">
+    <footer class="sidebar-footer">
+      <nav class="sidebar-user dropdown" data-dropdown-trigger="user-menu">
+        <figure class="user-avatar" data-user-initials="">?</figure>
+        <section class="user-info"><span class="user-name" data-user-name="">Loading...</span><span class="user-role" data-user-role=""></span></section>
+        <nav class="dropdown-menu" id="user-menu">
           <a class="dropdown-item" href="profile.html">My Profile</a>
-          <div class="dropdown-divider"></div>
-          <div class="dropdown-item danger" data-action="signout">Sign out</div>
-        </div>
-      </div>
-    </div>
+          <section class="dropdown-divider"></section>
+          <button class="dropdown-item danger" data-action="signout" type="button">Sign out</button>
+        </nav>
+      </nav>
+    </footer>
   </aside>
-  <div class="main-content">
+  <section class="main-content">
     <header class="topbar">
-      <button class="topbar-icon-btn" id="sidebar-toggle" style="display:none"><svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 5h14M3 10h14M3 15h14" stroke-linecap="round"/></svg></button>
+      <button class="topbar-icon-btn" id="sidebar-toggle" style="display:none"><svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 5h14M3 10h14M3 15h14" stroke-linecap="round"></path></svg></button>
       <span class="topbar-title">Admin Dashboard</span>
-      <div class="topbar-actions" style="margin-left:auto"><div class="topbar-avatar dropdown" data-dropdown-trigger="topbar-user-menu" data-user-initials>?</div></div>
-      <div class="dropdown-menu" id="topbar-user-menu">
-        <a class="dropdown-item" href="profile.html"><span data-user-name>My Account</span></a>
-        <div class="dropdown-divider"></div>
-        <div class="dropdown-item danger" data-action="signout">Sign out</div>
-      </div>
+      <nav class="topbar-actions" style="margin-left:auto"><figure class="topbar-avatar dropdown" data-dropdown-trigger="topbar-user-menu" data-user-initials="">?</figure></nav>
+      <nav class="dropdown-menu" id="topbar-user-menu">
+        <a class="dropdown-item" href="profile.html"><span data-user-name="">My Account</span></a>
+        <section class="dropdown-divider"></section>
+        <button class="dropdown-item danger" data-action="signout" type="button">Sign out</button>
+      </nav>
     </header>
     <main class="page-content">
-      <div class="page-header">
+      <header class="page-header">
         <h1>Admin Dashboard</h1>
         <p>Keep UniMart running smoothly by managing users, facility hours, reports, and listings.</p>
-      </div>
+      </header>
 
-      <div class="admin-grid">
-        <div class="metric-card"><div class="metric-label">Users</div><div class="metric-value" id="metric-users">0</div></div>
-        <div class="metric-card"><div class="metric-label">Active listings</div><div class="metric-value" id="metric-active-listings">0</div></div>
-        <div class="metric-card"><div class="metric-label">Open reports</div><div class="metric-value" id="metric-open-reports">0</div></div>
-        <div class="metric-card"><div class="metric-label">Moderation actions</div><div class="metric-value" id="metric-actions">0</div></div>
-      </div>
+      <section class="admin-grid">
+        <article class="metric-card"><span class="metric-label">Users</span><span class="metric-value" id="metric-users">0</span></article>
+        <article class="metric-card"><span class="metric-label">Active listings</span><span class="metric-value" id="metric-active-listings">0</span></article>
+        <article class="metric-card"><span class="metric-label">Open reports</span><span class="metric-value" id="metric-open-reports">0</span></article>
+        <article class="metric-card"><span class="metric-label">Moderation actions</span><span class="metric-value" id="metric-actions">0</span></article>
+      </section>
 
-      <div class="management-grid">
+      <section class="management-grid">
         <a class="management-card" href="#facility-config"><span class="management-title">Trade Facility</span><span class="management-copy">Set operating hours and booking capacity.</span></a>
         <a class="management-card" href="#role-management"><span class="management-title">User Roles</span><span class="management-copy">Assign student, staff, and admin access.</span></a>
         <a class="management-card" href="#permission-management"><span class="management-title">Access Rules</span><span class="management-copy">Choose what each role can see and do.</span></a>
         <a class="management-card" href="#moderation"><span class="management-title">Moderation</span><span class="management-copy">Review reports and remove bad listings.</span></a>
-      </div>
+        <a class="management-card" href="#analytics"><span class="management-title">Analytics</span><span class="management-copy">Export operational and moderation reports.</span></a>
+      </section>
 
-      <div class="admin-layout">
-        <div class="admin-stack">
+      <section class="admin-layout">
+        <section class="admin-stack">
           <section class="admin-panel" id="facility-config">
-            <div class="panel-header">
-              <div class="panel-title">Trade Facility Schedule</div>
-              <div class="panel-copy">Set when students can book drop-offs and collections.</div>
-            </div>
+            <header class="panel-header">
+              <span class="panel-title">Trade Facility Schedule</span>
+              <span class="panel-copy">Set when students can book drop-offs and collections.</span>
+            </header>
             <form class="panel-body" id="facility-config-form">
-              <div class="config-grid">
-                <div class="admin-field">
+              <section class="config-grid">
+                <section class="admin-field">
                   <label for="opens-at">Opening time</label>
-                  <input class="admin-input" id="opens-at" type="time" required />
-                </div>
-                <div class="admin-field">
+                  <input class="admin-input" id="opens-at" type="time" required="">
+                </section>
+                <section class="admin-field">
                   <label for="closes-at">Closing time</label>
-                  <input class="admin-input" id="closes-at" type="time" required />
-                </div>
-                <div class="admin-field">
+                  <input class="admin-input" id="closes-at" type="time" required="">
+                </section>
+                <section class="admin-field">
                   <label for="slot-minutes">Slot duration</label>
-                  <input class="admin-input" id="slot-minutes" type="number" min="10" step="5" required />
-                </div>
-                <div class="admin-field">
+                  <input class="admin-input" id="slot-minutes" type="number" min="10" step="5" required="">
+                </section>
+                <section class="admin-field">
                   <label for="slot-capacity">Slot capacity</label>
-                  <input class="admin-input" id="slot-capacity" type="number" min="1" step="1" required />
-                </div>
+                  <input class="admin-input" id="slot-capacity" type="number" min="1" step="1" required="">
+                </section>
                 <fieldset class="weekday-group">
                   <legend>Operating days</legend>
-                  <div class="weekday-options" id="weekday-options"></div>
+                  <section class="weekday-options" id="weekday-options"></section>
                 </fieldset>
-              </div>
-              <div class="admin-note" id="facility-availability-note"></div>
-              <div class="slot-preview" id="facility-slot-preview"></div>
-              <div class="admin-actions">
+              </section>
+              <span class="admin-note" id="facility-availability-note"></span>
+              <section class="slot-preview" id="facility-slot-preview"></section>
+              <section class="admin-actions">
                 <button type="submit" class="btn btn-primary">Save schedule</button>
-              </div>
+              </section>
             </form>
           </section>
 
           <section class="admin-panel" id="role-management">
-            <div class="panel-header">
-              <div class="panel-title">User and Role Management</div>
-              <div class="panel-copy">Give users the right level of access for their responsibilities.</div>
-            </div>
+            <header class="panel-header">
+              <span class="panel-title">User and Role Management</span>
+              <span class="panel-copy">Give users the right level of access for their responsibilities.</span>
+            </header>
             <table class="admin-table">
               <thead>
                 <tr><th>User</th><th>Email</th><th>Account</th><th>Role</th></tr>
@@ -387,38 +516,47 @@
           </section>
 
           <section class="admin-panel" id="permission-management">
-            <div class="panel-header">
-              <div class="panel-title">Access Rules</div>
-              <div class="panel-copy">Control which features are available to students, staff, and admins.</div>
-            </div>
-            <div class="panel-body">
-              <div class="permission-grid" id="permission-grid"></div>
-            </div>
+            <header class="panel-header">
+              <span class="panel-title">Access Rules</span>
+              <span class="panel-copy">Control which features are available to students, staff, and admins.</span>
+            </header>
+            <section class="panel-body">
+              <section class="permission-grid" id="permission-grid"></section>
+            </section>
           </section>
-        </div>
 
-        <div class="admin-stack">
+          <section class="admin-panel" id="analytics">
+            <header class="panel-header">
+              <span class="panel-title">Analytics and Reports</span>
+              <span class="panel-copy">Track completed transactions, facility utilization, and moderation trends.</span>
+            </header>
+            <section class="analytics-grid" id="analytics-panel"></section>
+            <section class="panel-body">
+              <section class="admin-actions">
+                <button class="btn-secondary" id="export-analytics-csv-btn" type="button">Export full CSV</button>
+                <button class="btn-secondary" id="export-analytics-pdf-btn" type="button">Export PDF</button>
+              </section>
+            </section>
+          </section>
+        </section>
+
+        <section class="admin-stack">
           <section class="admin-panel" id="moderation">
-            <div class="panel-header">
-              <div class="panel-title">Moderation and Reporting</div>
-              <div class="panel-copy">Review flagged content, resolve reports, and export moderation data.</div>
-            </div>
-            <table class="admin-table">
-              <thead>
-                <tr><th>Report</th><th>Status</th><th>Action</th></tr>
-              </thead>
-              <tbody id="report-table"></tbody>
-            </table>
-            <div class="panel-body">
+            <header class="panel-header">
+              <span class="panel-title">Moderation and Reporting</span>
+              <span class="panel-copy">Review flagged content, resolve reports, and export moderation data.</span>
+            </header>
+            <section class="moderation-list" id="report-table"></section>
+            <section class="panel-body">
               <button class="btn-secondary" id="export-reports-btn" type="button">Export reports</button>
-            </div>
+            </section>
           </section>
 
           <section class="admin-panel">
-            <div class="panel-header">
-              <div class="panel-title">Recent Listings</div>
-              <div class="panel-copy">Quick oversight of recent marketplace records.</div>
-            </div>
+            <header class="panel-header">
+              <span class="panel-title">Recent Listings</span>
+              <span class="panel-copy">Quick oversight of recent marketplace records.</span>
+            </header>
             <table class="admin-table">
               <thead>
                 <tr><th>Listing</th><th>Status</th><th>Price</th><th></th></tr>
@@ -428,10 +566,10 @@
           </section>
 
           <section class="admin-panel">
-            <div class="panel-header">
-              <div class="panel-title">Moderation Activity</div>
-              <div class="panel-copy">A record of recent changes made from this dashboard.</div>
-            </div>
+            <header class="panel-header">
+              <span class="panel-title">Moderation Activity</span>
+              <span class="panel-copy">A record of recent changes made from this dashboard.</span>
+            </header>
             <table class="admin-table">
               <thead>
                 <tr><th>Action</th><th>Target</th><th>Date</th></tr>
@@ -439,12 +577,12 @@
               <tbody id="activity-table"></tbody>
             </table>
           </section>
-        </div>
-      </div>
+        </section>
+      </section>
     </main>
-  </div>
-</div>
-<div class="toast-container" id="toast-container"></div>
+  </section>
+</section>
+<aside class="toast-container" id="toast-container"></aside>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <script type="module">
     // Import modules
@@ -468,6 +606,7 @@
     reports: [],
     actions: [],
     permissions: [],
+    analytics: {},
   };
   const weekdays = [
     ['monday', 'Mon'],
@@ -498,6 +637,8 @@
   function bindEvents() {
     document.getElementById('facility-config-form').addEventListener('submit', saveFacilityConfig);
     document.getElementById('export-reports-btn').addEventListener('click', exportReports);
+    document.getElementById('export-analytics-csv-btn').addEventListener('click', exportFullAnalyticsCsv);
+    document.getElementById('export-analytics-pdf-btn').addEventListener('click', exportAnalyticsPdf);
   }
 
   async function loadAdminOverview() {
@@ -512,6 +653,7 @@
     adminState.reports = result.reports || [];
     adminState.actions = result.moderationActions || [];
     adminState.permissions = result.rolePermissions || [];
+    adminState.analytics = result.analytics || {};
 
     document.getElementById('metric-users').textContent = result.metrics.users;
     document.getElementById('metric-active-listings').textContent = result.metrics.activeListings;
@@ -524,6 +666,7 @@
     renderReports();
     renderListings();
     renderActivity();
+    renderAnalytics();
   }
 
   function populateFacilityConfig(config) {
@@ -561,16 +704,16 @@
     if (!Auth.getFacilityAvailability) return;
     const result = await Auth.getFacilityAvailability();
     if (result.error) {
-      wrap.innerHTML = `<div class="slot-preview-item">Availability preview unavailable.</div>`;
+      wrap.innerHTML = `<section class="slot-preview-item">Availability preview unavailable.</section>`;
       return;
     }
     const slots = (result.slots || []).filter(slot => slot.available > 0).slice(0, 8);
     wrap.innerHTML = slots.length ? slots.map(slot => `
-      <div class="slot-preview-item">
+      <section class="slot-preview-item">
         <strong>${formatSlotDate(slot.startsAt)}</strong>
         ${slot.available} of ${slot.capacity} places available
-      </div>
-    `).join('') : '<div class="slot-preview-item">No available slots in the next 14 days.</div>';
+      </section>
+    `).join('') : '<section class="slot-preview-item">No available slots in the next 14 days.</section>';
   }
 
   async function saveFacilityConfig(event) {
@@ -631,12 +774,12 @@
     }, {});
 
     document.getElementById('permission-grid').innerHTML = [
-      '<div class="permission-cell header">Feature</div>',
-      '<div class="permission-cell header">Student</div>',
-      '<div class="permission-cell header">Staff</div>',
-      '<div class="permission-cell header">Admin</div>',
+      '<section class="permission-cell header">Feature</section>',
+      '<section class="permission-cell header">Student</section>',
+      '<section class="permission-cell header">Staff</section>',
+      '<section class="permission-cell header">Admin</section>',
       ...permissions.flatMap(permission => [
-        `<div class="permission-cell name">${escapeHtml(formatPermission(permission))}</div>`,
+        `<section class="permission-cell name">${escapeHtml(formatPermission(permission))}</section>`,
         renderPermissionToggle('student', permission, enabledMap),
         renderPermissionToggle('staff', permission, enabledMap),
         renderPermissionToggle('admin', permission, enabledMap),
@@ -672,41 +815,61 @@
       ? enabledMap[key]
       : fallback[role].includes(permission);
     return `
-      <div class="permission-cell permission-toggle">
+      <section class="permission-cell permission-toggle">
         <input type="checkbox" data-permission-toggle data-role="${role}" data-permission="${escapeAttribute(permission)}" ${checked ? 'checked' : ''} />
-      </div>
+      </section>
     `;
   }
 
   function renderReports() {
     const body = document.getElementById('report-table');
-    body.innerHTML = adminState.reports.length ? adminState.reports.map(report => `
-      <tr>
-        <td>
-          <strong>${escapeHtml(formatPermission(report.targetType))}</strong><br />
-          <span class="muted">${escapeHtml(report.reason)}</span>
-        </td>
-        <td><span class="status-pill ${escapeAttribute(report.status)}">${escapeHtml(formatStatusLabel(report.status))}</span></td>
-        <td>
-          <select class="admin-select" data-report-status="${escapeAttribute(report.id)}">
-            <option value="open" ${report.status === 'open' ? 'selected' : ''}>Open</option>
-            <option value="reviewing" ${report.status === 'reviewing' ? 'selected' : ''}>Reviewing</option>
-            <option value="resolved" ${report.status === 'resolved' ? 'selected' : ''}>Resolved</option>
-            <option value="dismissed" ${report.status === 'dismissed' ? 'selected' : ''}>Dismissed</option>
-          </select>
-          ${report.listingId ? `<button class="btn-secondary" style="margin-top:8px;width:100%" data-remove-listing="${escapeAttribute(report.listingId)}">Remove listing</button>` : ''}
-          ${report.targetType === 'review' && report.targetId ? `<button class="btn-secondary" style="margin-top:8px;width:100%" data-remove-review="${escapeAttribute(report.targetId)}">Remove review</button>` : ''}
-        </td>
-      </tr>
-    `).join('') : '<tr><td colspan="3" class="empty-row">No flagged content yet.</td></tr>';
+    body.innerHTML = adminState.reports.length ? adminState.reports.map(report => {
+      const isReview = report.targetType === 'review';
+      const targetLabel = isReview ? 'Review' : 'Listing';
+      const action = isReview && report.targetId
+        ? `<button class="btn-danger-soft" data-remove-review="${escapeAttribute(report.targetId)}">Remove review</button>`
+        : report.listingId
+          ? `<button class="btn-danger-soft" data-remove-listing="${escapeAttribute(report.listingId)}">Remove listing</button>`
+          : '';
+      return `
+        <article class="report-card">
+          <section class="report-card-header">
+            <section>
+              <section class="report-title">${escapeHtml(targetLabel)}: ${escapeHtml(report.targetTitle || 'Unknown target')}</section>
+              <section class="report-meta">Reporter: ${escapeHtml(report.reporterName || shortId(report.reporterId))}</section>
+              ${report.targetSnippet ? `<section class="report-meta">Content: ${escapeHtml(truncate(report.targetSnippet, 130))}</section>` : ''}
+              ${report.targetStatus ? `<section class="report-meta">Current status: ${escapeHtml(formatStatusLabel(report.targetStatus))}</section>` : ''}
+            </section>
+            <span class="status-pill ${escapeAttribute(report.status)}">${escapeHtml(formatStatusLabel(report.status))}</span>
+          </section>
+          <section class="report-reason">${escapeHtml(report.reason || 'No reason added.')}</section>
+          <section class="report-controls">
+            <label class="admin-field">
+              <span>Status</span>
+              <select class="admin-select" data-report-status="${escapeAttribute(report.id)}">
+                <option value="open" ${report.status === 'open' ? 'selected' : ''}>Open</option>
+                <option value="reviewing" ${report.status === 'reviewing' ? 'selected' : ''}>Reviewing</option>
+                <option value="resolved" ${report.status === 'resolved' ? 'selected' : ''}>Resolved</option>
+                <option value="dismissed" ${report.status === 'dismissed' ? 'selected' : ''}>Dismissed</option>
+              </select>
+            </label>
+            <section class="report-actions">
+              ${action}
+              <button class="btn-secondary" data-dismiss-report="${escapeAttribute(report.id)}">Dismiss report</button>
+            </section>
+          </section>
+        </article>
+      `;
+    }).join('') : '<section class="empty-row">No flagged content yet.</section>';
 
     body.querySelectorAll('[data-report-status]').forEach(select => {
       select.addEventListener('change', async function () {
+        const note = getModerationNote(`Reason for marking this report ${this.value}:`, `Marked ${this.value} from admin dashboard`);
         const result = await Auth.updateContentReport({
           reportId: this.dataset.reportStatus,
           adminId: adminState.user.id,
           status: this.value,
-          note: `Marked ${this.value} from admin dashboard`,
+          note,
         });
         if (result.error) {
           showToast(result.error, 'error');
@@ -718,13 +881,32 @@
       });
     });
 
+    body.querySelectorAll('[data-dismiss-report]').forEach(button => {
+      button.addEventListener('click', async function () {
+        const note = getModerationNote('Reason for dismissing this report:', 'Dismissed from admin dashboard');
+        const result = await Auth.updateContentReport({
+          reportId: this.dataset.dismissReport,
+          adminId: adminState.user.id,
+          status: 'dismissed',
+          note,
+        });
+        if (result.error) {
+          showToast(result.error, 'error');
+          return;
+        }
+        showToast('Report dismissed', 'success');
+        loadAdminOverview();
+      });
+    });
+
     body.querySelectorAll('[data-remove-listing]').forEach(button => {
       button.addEventListener('click', async function () {
         if (!window.confirm('Remove this listing from the marketplace?')) return;
+        const note = getModerationNote('Reason for removing this listing:', 'Removed from flagged content review');
         const result = await Auth.removeListingAsAdmin({
           listingId: this.dataset.removeListing,
           adminId: adminState.user.id,
-          note: 'Removed from flagged content review',
+          note,
         });
         if (result.error) {
           showToast(result.error, 'error');
@@ -738,10 +920,11 @@
     body.querySelectorAll('[data-remove-review]').forEach(button => {
       button.addEventListener('click', async function () {
         if (!window.confirm('Remove this review?')) return;
+        const note = getModerationNote('Reason for removing this review:', 'Removed from flagged content review');
         const result = await Auth.removeReviewAsAdmin({
           reviewId: this.dataset.removeReview,
           adminId: adminState.user.id,
-          note: 'Removed from flagged content review',
+          note,
         });
         if (result.error) {
           showToast(result.error, 'error');
@@ -767,10 +950,11 @@
     body.querySelectorAll('[data-remove-listing]').forEach(button => {
       button.addEventListener('click', async function () {
         if (!window.confirm('Remove this listing from the marketplace?')) return;
+        const note = getModerationNote('Reason for removing this listing:', 'Removed from recent listing review');
         const result = await Auth.removeListingAsAdmin({
           listingId: this.dataset.removeListing,
           adminId: adminState.user.id,
-          note: 'Removed from recent listing review',
+          note,
         });
         if (result.error) {
           showToast(result.error, 'error');
@@ -786,11 +970,63 @@
     const body = document.getElementById('activity-table');
     body.innerHTML = adminState.actions.length ? adminState.actions.map(action => `
       <tr>
-        <td>${escapeHtml(formatPermission(action.action))}</td>
+        <td>${escapeHtml(formatPermission(action.action))}<br /><span class="muted">${escapeHtml(action.note || 'No note added.')}</span></td>
         <td>${escapeHtml(action.targetType)}<br /><span class="muted">${escapeHtml(String(action.targetId || '').slice(0, 8))}</span></td>
-        <td>${formatDate(action.createdAt)}</td>
+        <td>${formatDate(action.createdAt)}<br /><span class="muted">${escapeHtml(action.adminName || 'System')}</span></td>
       </tr>
     `).join('') : '<tr><td colspan="3" class="empty-row">No moderation activity yet.</td></tr>';
+  }
+
+  function renderAnalytics() {
+    const analytics = adminState.analytics || {};
+    const completed = analytics.completedTransactionsOverTime || [];
+    const maxCompleted = Math.max(1, ...completed.map(item => item.count || 0));
+    const utilization = analytics.facilityUtilization || { used: 0, capacity: 0, percentage: 0, period: 'Last 30 days' };
+    const moderation = analytics.moderationSummary || {};
+    const actionCounts = moderation.actionCounts || {};
+    const reportStatusCounts = moderation.reportStatusCounts || {};
+    const reportTypeCounts = moderation.reportTypeCounts || {};
+
+    document.getElementById('analytics-panel').innerHTML = `
+      <section class="analytics-card">
+        <section class="analytics-title">Completed Transactions Over Time</section>
+        <section class="bar-list">
+          ${completed.map(item => renderBarRow(item.label, item.count, maxCompleted)).join('') || '<section class="empty-row">No completed transactions yet.</section>'}
+        </section>
+      </section>
+      <section class="analytics-card">
+        <section class="analytics-title">Trade Facility Utilization vs Capacity</section>
+        <section class="summary-list">
+          <section><strong>${utilization.used || 0}</strong> bookings used out of <strong>${utilization.capacity || 0}</strong> available capacity (${escapeHtml(utilization.period || 'Last 30 days')}).</section>
+          <section class="bar-track"><section class="bar-fill" style="width:${Math.min(100, utilization.percentage || 0)}%"></section></section>
+          <section><strong>${utilization.percentage || 0}%</strong> utilization</section>
+        </section>
+      </section>
+      <section class="analytics-card">
+        <section class="analytics-title">Flagged and Moderated Content Summary</section>
+        <section class="summary-list">
+          <section><strong>${moderation.totalReports || 0}</strong> total reports</section>
+          <section><strong>${moderation.openReports || 0}</strong> open/reviewing reports</section>
+          <section><strong>${moderation.resolvedReports || 0}</strong> resolved reports</section>
+          <section><strong>${moderation.dismissedReports || 0}</strong> dismissed reports</section>
+          <section><strong>${moderation.totalActions || 0}</strong> moderation actions</section>
+          <section>Report statuses: ${escapeHtml(formatCountMap(reportStatusCounts))}</section>
+          <section>Report types: ${escapeHtml(formatCountMap(reportTypeCounts))}</section>
+          <section>Actions: ${escapeHtml(formatCountMap(actionCounts))}</section>
+        </section>
+      </section>
+    `;
+  }
+
+  function renderBarRow(label, value, maxValue) {
+    const width = Math.round(((value || 0) / Math.max(1, maxValue)) * 100);
+    return `
+      <section class="bar-row">
+        <span>${escapeHtml(label)}</span>
+        <span class="bar-track"><span class="bar-fill" style="width:${width}%"></span></span>
+        <strong>${value || 0}</strong>
+      </section>
+    `;
   }
 
   function exportReports() {
@@ -807,6 +1043,122 @@
     link.download = `unimart-moderation-${new Date().toISOString().slice(0, 10)}.csv`;
     link.click();
     URL.revokeObjectURL(url);
+  }
+
+  function exportFullAnalyticsCsv() {
+    const rows = buildFullReportRows();
+    downloadCsv(rows, `unimart-full-report-${new Date().toISOString().slice(0, 10)}.csv`);
+  }
+
+  function exportAnalyticsPdf() {
+    const analytics = adminState.analytics || {};
+    const completedRows = (analytics.completedTransactionsOverTime || [])
+      .map(item => `<tr><td>${escapeHtml(item.label)}</td><td>${item.count || 0}</td></tr>`)
+      .join('');
+    const utilization = analytics.facilityUtilization || {};
+    const moderation = analytics.moderationSummary || {};
+    const reportWindow = window.open('', '_blank');
+    if (!reportWindow) {
+      showToast('Allow pop-ups to export the PDF report.', 'error');
+      return;
+    }
+    reportWindow.document.write(`
+      <!doctype html>
+      <html>
+      <head>
+        <title>UniMart Analytics Report</title>
+        <style>
+          body { font-family: Arial, sans-serif; color: #1f241f; padding: 28px; }
+          h1, h2 { margin: 0 0 10px; }
+          section { margin: 22px 0; }
+          table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+          th, td { border: 1px solid #ddd7ca; padding: 8px; text-align: left; }
+          th { background: #f4f1ea; }
+          .muted { color: #6f6a5f; }
+        </style>
+      </head>
+      <body>
+        <h1>UniMart Analytics Report</h1>
+        <p class="muted">Generated ${escapeHtml(formatDate(new Date().toISOString()))}</p>
+        <section>
+          <h2>Completed Transactions Over Time</h2>
+          <table><thead><tr><th>Period</th><th>Completed</th></tr></thead><tbody>${completedRows}</tbody></table>
+        </section>
+        <section>
+          <h2>Trade Facility Utilization</h2>
+          <p>${utilization.used || 0} bookings used out of ${utilization.capacity || 0} capacity (${utilization.percentage || 0}%) for ${escapeHtml(utilization.period || 'Last 30 days')}.</p>
+        </section>
+        <section>
+          <h2>Flagged and Moderated Content</h2>
+          <p>Total reports: ${moderation.totalReports || 0}</p>
+          <p>Open/reviewing: ${moderation.openReports || 0}</p>
+          <p>Resolved: ${moderation.resolvedReports || 0}</p>
+          <p>Dismissed: ${moderation.dismissedReports || 0}</p>
+          <p>Moderation actions: ${moderation.totalActions || 0}</p>
+          <p>Report statuses: ${escapeHtml(formatCountMap(moderation.reportStatusCounts || {}))}</p>
+          <p>Report types: ${escapeHtml(formatCountMap(moderation.reportTypeCounts || {}))}</p>
+          <p>Actions: ${escapeHtml(formatCountMap(moderation.actionCounts || {}))}</p>
+        </section>
+      </body>
+      </html>
+    `);
+    reportWindow.document.close();
+    reportWindow.focus();
+    reportWindow.print();
+  }
+
+  function buildFullReportRows() {
+    const analytics = adminState.analytics || {};
+    const utilization = analytics.facilityUtilization || {};
+    const moderation = analytics.moderationSummary || {};
+    return [
+      ['section', 'metric', 'value', 'extra'],
+      ...(analytics.completedTransactionsOverTime || []).map(item => ['completed_transactions_over_time', item.label, item.count || 0, item.key || '']),
+      ['facility_utilization', 'used', utilization.used || 0, utilization.period || 'Last 30 days'],
+      ['facility_utilization', 'capacity', utilization.capacity || 0, utilization.period || 'Last 30 days'],
+      ['facility_utilization', 'percentage', `${utilization.percentage || 0}%`, utilization.period || 'Last 30 days'],
+      ['moderation_summary', 'total_reports', moderation.totalReports || 0, ''],
+      ['moderation_summary', 'open_reports', moderation.openReports || 0, ''],
+      ['moderation_summary', 'resolved_reports', moderation.resolvedReports || 0, ''],
+      ['moderation_summary', 'dismissed_reports', moderation.dismissedReports || 0, ''],
+      ['moderation_summary', 'total_actions', moderation.totalActions || 0, ''],
+      ...Object.entries(moderation.reportStatusCounts || {}).map(([key, value]) => ['report_status', key, value, '']),
+      ...Object.entries(moderation.reportTypeCounts || {}).map(([key, value]) => ['report_type', key, value, '']),
+      ...Object.entries(moderation.actionCounts || {}).map(([key, value]) => ['moderation_action', key, value, '']),
+      ...adminState.reports.map(report => ['report', report.targetType, report.status, `${report.targetTitle || ''} | ${report.reason || ''}`]),
+      ...adminState.actions.map(action => ['action', action.action, action.targetType, action.note || '']),
+    ];
+  }
+
+  function downloadCsv(rows, filename) {
+    const csv = rows.map(row => row.map(value => `"${String(value ?? '').replace(/"/g, '""')}"`).join(',')).join('\n');
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = filename;
+    link.click();
+    URL.revokeObjectURL(url);
+  }
+
+  function formatCountMap(map = {}) {
+    const entries = Object.entries(map);
+    return entries.length ? entries.map(([key, value]) => `${formatPermission(key)}: ${value}`).join(', ') : 'None';
+  }
+
+  function getModerationNote(promptText, fallback) {
+    const value = window.prompt(promptText, fallback);
+    return value && value.trim() ? value.trim() : fallback;
+  }
+
+  function truncate(value, maxLength) {
+    const text = String(value || '');
+    return text.length > maxLength ? `${text.slice(0, maxLength - 3)}...` : text;
+  }
+
+  function shortId(value) {
+    if (!value) return 'Unknown';
+    return `${String(value).slice(0, 8)}...`;
   }
 
   function minutesBetween(start, end) {
@@ -866,5 +1218,6 @@
   }
 
   </script>
-</body>
-</html>
+
+
+</body></html>
