@@ -6,26 +6,59 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet">
   <link rel="stylesheet" href="../styles/styles.css">
   <style>
+    html.messages-lock,
+    body.messages-lock {
+      height: 100%;
+      overflow: hidden;
+    }
+
+    body.messages-lock .app-shell,
+    body.messages-lock .main-content {
+      height: 100vh;
+      min-height: 100vh;
+      overflow: hidden;
+    }
+
+    .messages-page-content {
+      height: calc(100vh - var(--header-height));
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .messages-page-content .page-header {
+      flex-shrink: 0;
+      margin-bottom: 18px;
+    }
+
     .messages-layout {
       display: grid;
       grid-template-columns: minmax(260px, 0.38fr) minmax(0, 0.62fr);
       gap: 18px;
-      min-height: 620px;
+      flex: 1;
+      height: 100%;
+      min-height: 0;
+      overflow: hidden;
     }
 
     .conversation-list,
     .thread-panel {
+      display: flex;
+      flex-direction: column;
       background: #fff;
       border: 1px solid var(--border);
       border-radius: var(--radius-lg);
       box-shadow: var(--shadow-sm);
       overflow: hidden;
+      height: 100%;
+      min-height: 0;
     }
 
     .conversation-list-header,
     .thread-header {
       padding: 16px;
       border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
     }
 
     .conversation-list-header h2,
@@ -37,7 +70,9 @@
     .conversation-stack {
       display: flex;
       flex-direction: column;
-      max-height: 620px;
+      flex: 1;
+      min-height: 0;
+      max-height: 100%;
       overflow: auto;
     }
 
@@ -169,17 +204,21 @@
     }
 
     .thread-panel {
-      display: flex;
-      flex-direction: column;
       min-width: 0;
+      height: 100%;
     }
 
     .message-stack {
-      flex: 1;
       padding: 18px;
       display: flex;
       flex-direction: column;
       gap: 12px;
+      background: var(--linen);
+    }
+
+    .thread-scroll {
+      flex: 1;
+      min-height: 0;
       overflow: auto;
       background: var(--linen);
     }
@@ -228,6 +267,7 @@
       display: flex;
       flex-direction: column;
       gap: 10px;
+      flex-shrink: 0;
     }
 
     .message-compose-actions {
@@ -376,8 +416,36 @@
     }
 
     @media (max-width: 900px) {
+      html.messages-lock,
+      body.messages-lock {
+        height: auto;
+        overflow: auto;
+      }
+
+      body.messages-lock .app-shell,
+      body.messages-lock .main-content {
+        height: auto;
+        min-height: 100vh;
+        overflow: visible;
+      }
+
+      .messages-page-content {
+        height: auto;
+        overflow: visible;
+      }
+
       .messages-layout {
         grid-template-columns: 1fr;
+        flex: none;
+      }
+
+      .conversation-list {
+        max-height: 380px;
+      }
+
+      .thread-panel {
+        min-height: 640px;
+        height: calc(100vh - var(--header-height) - 32px);
       }
 
       .message-row {
@@ -433,7 +501,7 @@
       </nav>
     </header>
 
-    <main class="page-content">
+    <main class="page-content messages-page-content">
       <header class="page-header">
         <h1>Messages</h1>
         <p>Manage listing conversations with buyers and sellers.</p>
@@ -453,14 +521,16 @@
             <h2 id="thread-title">Select a conversation</h2>
             <p class="thread-subtitle" id="thread-subtitle">Messages appear in chronological order.</p>
           </header>
-          <section class="thread-offers" id="thread-offers"></section>
-          <nav class="message-stack" id="message-stack">
-            <aside class="empty-state">
-              <figure class="empty-state-icon"><span class="ui-icon"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 5.5h12v8H8l-4 3v-11Z" stroke-linejoin="round"></path><path d="M7 8.5h6M7 11h4" stroke-linecap="round"></path></svg></span></figure>
-              <h3>No conversation selected</h3>
-              <p>Choose a thread from your inbox to read and reply.</p>
-            </aside>
-          </nav>
+          <section class="thread-scroll" id="thread-scroll">
+            <section class="thread-offers" id="thread-offers"></section>
+            <nav class="message-stack" id="message-stack">
+              <aside class="empty-state">
+                <figure class="empty-state-icon"><span class="ui-icon"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 5.5h12v8H8l-4 3v-11Z" stroke-linejoin="round"></path><path d="M7 8.5h6M7 11h4" stroke-linecap="round"></path></svg></span></figure>
+                <h3>No conversation selected</h3>
+                <p>Choose a thread from your inbox to read and reply.</p>
+              </aside>
+            </nav>
+          </section>
           <form class="message-compose" id="message-form">
             <textarea class="form-input" id="message-input" rows="3" maxlength="500" placeholder="Write a message..." disabled=""></textarea>
             <span class="form-error" id="message-error"></span>
@@ -482,6 +552,8 @@
     // Import modules
     import { Auth, initializeSupabase, getSupabaseClient } from '../scripts/auth.js';
     import * as App from '../scripts/app-modular.js';
+    document.documentElement.classList.add('messages-lock');
+    document.body.classList.add('messages-lock');
     
     // Initialize Supabase
     const _sb = initializeSupabase(window.supabase);
@@ -748,6 +820,7 @@
   async function loadMessages(conversationId, markRead, options = {}) {
     const { showLoading = false, forceRender = false } = options;
     const stack = document.getElementById('message-stack');
+    const threadScroll = document.getElementById('thread-scroll');
     if (showLoading) stack.innerHTML = renderEmptyPanel('Loading messages...');
 
     const result = await Auth.getConversationMessages({ conversationId, userId: state.user.id, markRead });
@@ -770,7 +843,8 @@
 
     if (!forceRender && nextSignature === state.messageSignature) return;
 
-    const nearBottom = stack.scrollHeight - stack.scrollTop - stack.clientHeight < 80;
+    const scrollTarget = threadScroll || stack;
+    const nearBottom = scrollTarget.scrollHeight - scrollTarget.scrollTop - scrollTarget.clientHeight < 80;
     state.messages = messages;
     state.offers = offers;
     state.transactions = transactions;
@@ -784,7 +858,7 @@
     }
 
     stack.innerHTML = state.messages.map(renderMessage).join('');
-    if (nearBottom || forceRender) stack.scrollTop = stack.scrollHeight;
+    if (nearBottom || forceRender) scrollTarget.scrollTop = scrollTarget.scrollHeight;
   }
 
   function renderOfferPanel(conversation) {
