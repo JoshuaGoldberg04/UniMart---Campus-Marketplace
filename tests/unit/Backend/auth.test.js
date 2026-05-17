@@ -317,8 +317,10 @@ describe('verifyOTP', () => {
 // ─── requireAuth ──────────────────────────────────────────────────────────────
 
 describe('requireAuth', () => {
+  // window.location.replace is stubbed globally in tests/setup.js
+  // to prevent jsdom "Not implemented: navigation" errors in CI
+
   test('returns null when no session (redirect is triggered)', async () => {
-    // jsdom does not allow spying on location.replace; verify null return is enough
     initializeSupabase(mkSb());
     expect(await requireAuth()).toBeNull();
   });

@@ -75,6 +75,23 @@ Object.defineProperty(window, 'sessionStorage', {
   writable: true
 });
 
+// Stub window.location navigation methods to prevent jsdom
+// "Not implemented: navigation" errors in CI when auth.js calls redirectToPage()
+try {
+  Object.defineProperty(window.location, 'replace', {
+    value: () => {},
+    writable: true,
+    configurable: true,
+  });
+} catch (_) {}
+try {
+  Object.defineProperty(window.location, 'assign', {
+    value: () => {},
+    writable: true,
+    configurable: true,
+  });
+} catch (_) {}
+
 // Clean up after each test
 afterEach(() => {
   document.body.innerHTML = '';
