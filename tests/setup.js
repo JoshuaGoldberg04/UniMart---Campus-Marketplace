@@ -75,22 +75,15 @@ Object.defineProperty(window, 'sessionStorage', {
   writable: true
 });
 
-// Stub window.location navigation methods to prevent jsdom
-// "Not implemented: navigation" errors in CI when auth.js calls redirectToPage()
-try {
-  Object.defineProperty(window.location, 'replace', {
-    value: () => {},
-    writable: true,
-    configurable: true,
-  });
-} catch (_) {}
-try {
-  Object.defineProperty(window.location, 'assign', {
-    value: () => {},
-    writable: true,
-    configurable: true,
-  });
-} catch (_) {}
+// Suppress jsdom "Not implemented: navigation" console errors.
+// jsdom cannot actually navigate; this just silences the noisy error output.
+// The navigation itself is a no-op in jsdom — tests still pass correctly.
+const originalConsoleError = console.error;
+console.error = (...args) => {
+  const msg = args[0] && args[0].toString ? args[0].toString() : '';
+  if (msg.includes('Not implemented: navigation')) return;
+  originalConsoleError(...args);
+};
 
 // Clean up after each test
 afterEach(() => {
