@@ -1,12 +1,10 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<!DOCTYPE html><html lang="en"><head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Listing Management - UniMart</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="../styles/styles.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../styles/styles.css">
   <style>
     .listing-layout {
       display: grid;
@@ -69,13 +67,24 @@
 
     .form-textarea {
       min-height: 110px;
-      resize: vertical;
+      resize: none;
     }
 
     .form-select:focus,
     .form-textarea:focus {
       border-color: var(--sage);
       box-shadow: 0 0 0 3px rgba(58, 102, 69, 0.12);
+    }
+
+    .field-count {
+      align-self: flex-end;
+      color: var(--muted);
+      font-size: 0.74rem;
+    }
+
+    .field-count.limit {
+      color: #9f3c33;
+      font-weight: 700;
     }
 
     .switch-row {
@@ -114,6 +123,45 @@
 
     .form-actions .btn {
       flex: 1;
+    }
+
+    .price-guide {
+      display: none;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background: var(--linen);
+      padding: 12px 14px;
+      gap: 8px;
+    }
+
+    .price-guide.show {
+      display: grid;
+    }
+
+    .price-guide-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .price-guide-title {
+      font-size: 0.82rem;
+      font-weight: 800;
+      color: var(--ink);
+    }
+
+    .price-guide-range {
+      color: var(--sage);
+      font-size: 0.95rem;
+      font-weight: 800;
+      white-space: nowrap;
+    }
+
+    .price-guide-copy {
+      color: var(--muted);
+      font-size: 0.78rem;
+      line-height: 1.4;
     }
 
     .listing-board {
@@ -353,131 +401,132 @@
 </head>
 <body>
 
-<div class="overlay" id="sidebar-overlay"></div>
+<aside class="overlay" id="sidebar-overlay"></aside>
 
-<div class="app-shell">
+<section class="app-shell">
   <aside class="sidebar" id="sidebar">
-    <div class="sidebar-logo">
-      <img src="../assets/unimart-logo.png" alt="UniMart Logo" class="logo-img" />
-    </div>
+    <figure class="sidebar-logo">
+      <img src="../assets/unimart-logo.png" alt="UniMart Logo" class="logo-img">
+    </figure>
 
     <nav class="sidebar-nav">
-      <div class="sidebar-section-label">Main</div>
+      <span class="sidebar-section-label">Main</span>
 
       <a href="search.html" class="nav-item" data-page="search.html">
         <svg class="nav-icon" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8">
-          <circle cx="8.5" cy="8.5" r="5.25"/><path d="m13.75 13.75 3 3" stroke-linecap="round"/>
+          <circle cx="8.5" cy="8.5" r="5.25"></circle><path d="m13.75 13.75 3 3" stroke-linecap="round"></path>
         </svg>
         Search Listings
       </a>
 
       <a href="dashboard.html" class="nav-item" data-page="dashboard.html">
         <svg class="nav-icon" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8">
-          <rect x="2.5" y="2.5" width="6" height="6" rx="1.5"/>
-          <rect x="11.5" y="2.5" width="6" height="6" rx="1.5"/>
-          <rect x="2.5" y="11.5" width="6" height="6" rx="1.5"/>
-          <rect x="11.5" y="11.5" width="6" height="6" rx="1.5"/>
+          <rect x="2.5" y="2.5" width="6" height="6" rx="1.5"></rect>
+          <rect x="11.5" y="2.5" width="6" height="6" rx="1.5"></rect>
+          <rect x="2.5" y="11.5" width="6" height="6" rx="1.5"></rect>
+          <rect x="11.5" y="11.5" width="6" height="6" rx="1.5"></rect>
         </svg>
         Dashboard
       </a>
 
-      <div class="sidebar-section-label">Manage</div>
+      <span class="sidebar-section-label">Manage</span>
 
       <a href="listings.html" class="nav-item" data-page="listings.html">
         <svg class="nav-icon" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8">
-          <path d="M4 6h12M4 10h8M4 14h5" stroke-linecap="round"/>
+          <path d="M4 6h12M4 10h8M4 14h5" stroke-linecap="round"></path>
         </svg>
         Listing Management
       </a>
     </nav>
 
-    <div class="sidebar-footer">
-      <div class="sidebar-user dropdown" data-dropdown-trigger="user-menu">
-        <div class="user-avatar" data-user-initials>?</div>
-        <div class="user-info">
-          <div class="user-name" data-user-name>Loading...</div>
-          <div class="user-role" data-user-role></div>
-        </div>
-        <span class="user-chevron"><span class="ui-icon ui-icon-sm"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8"><path d="m5 7 5 6 5-6" stroke-linecap="round" stroke-linejoin="round"/></svg></span></span>
-        <div class="dropdown-menu" id="user-menu">
-          <a class="dropdown-item" href="profile.html"><span class="ui-icon"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="10" cy="7" r="3.5"/><path d="M3.5 16c0-3.59 2.91-6.5 6.5-6.5s6.5 2.91 6.5 6.5" stroke-linecap="round"/></svg></span> My Profile</a>
-          <div class="dropdown-divider"></div>
-          <div class="dropdown-item danger" data-action="signout"><span class="ui-icon"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M8 5H5.5A1.5 1.5 0 0 0 4 6.5v7A1.5 1.5 0 0 0 5.5 15H8" stroke-linecap="round"/><path d="M11 6l4 4-4 4" stroke-linecap="round" stroke-linejoin="round"/><path d="M15 10H8" stroke-linecap="round"/></svg></span> Sign out</div>
-        </div>
-      </div>
-    </div>
+    <footer class="sidebar-footer">
+      <nav class="sidebar-user dropdown" data-dropdown-trigger="user-menu">
+        <figure class="user-avatar" data-user-initials="">?</figure>
+        <section class="user-info">
+          <span class="user-name" data-user-name="">Loading...</span>
+          <span class="user-role" data-user-role=""></span>
+        </section>
+        <span class="user-chevron"><span class="ui-icon ui-icon-sm"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8"><path d="m5 7 5 6 5-6" stroke-linecap="round" stroke-linejoin="round"></path></svg></span></span>
+        <nav class="dropdown-menu" id="user-menu">
+          <a class="dropdown-item" href="profile.html"><span class="ui-icon"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="10" cy="7" r="3.5"></circle><path d="M3.5 16c0-3.59 2.91-6.5 6.5-6.5s6.5 2.91 6.5 6.5" stroke-linecap="round"></path></svg></span> My Profile</a>
+          <section class="dropdown-divider"></section>
+          <button class="dropdown-item danger" data-action="signout" type="button"><span class="ui-icon"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M8 5H5.5A1.5 1.5 0 0 0 4 6.5v7A1.5 1.5 0 0 0 5.5 15H8" stroke-linecap="round"></path><path d="M11 6l4 4-4 4" stroke-linecap="round" stroke-linejoin="round"></path><path d="M15 10H8" stroke-linecap="round"></path></svg></span> Sign out</button>
+        </nav>
+      </nav>
+    </footer>
   </aside>
 
-  <div class="main-content">
+  <section class="main-content">
     <header class="topbar">
       <button class="topbar-icon-btn" id="sidebar-toggle" style="display:none">
         <svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M3 5h14M3 10h14M3 15h14" stroke-linecap="round"/>
+          <path d="M3 5h14M3 10h14M3 15h14" stroke-linecap="round"></path>
         </svg>
       </button>
       <span class="topbar-title">Listing Management</span>
-      <div class="topbar-actions" style="margin-left:auto">
-        <div class="topbar-avatar dropdown" data-dropdown-trigger="topbar-user-menu" data-user-initials>?</div>
-      </div>
-      <div class="dropdown-menu" id="topbar-user-menu">
-        <a class="dropdown-item" href="profile.html"><span class="ui-icon"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="10" cy="7" r="3.5"/><path d="M3.5 16c0-3.59 2.91-6.5 6.5-6.5s6.5 2.91 6.5 6.5" stroke-linecap="round"/></svg></span> <span data-user-name>My Account</span></a>
-        <div class="dropdown-divider"></div>
-        <div class="dropdown-item danger" data-action="signout"><span class="ui-icon"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M8 5H5.5A1.5 1.5 0 0 0 4 6.5v7A1.5 1.5 0 0 0 5.5 15H8" stroke-linecap="round"/><path d="M11 6l4 4-4 4" stroke-linecap="round" stroke-linejoin="round"/><path d="M15 10H8" stroke-linecap="round"/></svg></span> Sign out</div>
-      </div>
+      <nav class="topbar-actions" style="margin-left:auto">
+        <figure class="topbar-avatar dropdown" data-dropdown-trigger="topbar-user-menu" data-user-initials="">?</figure>
+      </nav>
+      <nav class="dropdown-menu" id="topbar-user-menu">
+        <a class="dropdown-item" href="profile.html"><span class="ui-icon"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="10" cy="7" r="3.5"></circle><path d="M3.5 16c0-3.59 2.91-6.5 6.5-6.5s6.5 2.91 6.5 6.5" stroke-linecap="round"></path></svg></span> <span data-user-name="">My Account</span></a>
+        <section class="dropdown-divider"></section>
+        <button class="dropdown-item danger" data-action="signout" type="button"><span class="ui-icon"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M8 5H5.5A1.5 1.5 0 0 0 4 6.5v7A1.5 1.5 0 0 0 5.5 15H8" stroke-linecap="round"></path><path d="M11 6l4 4-4 4" stroke-linecap="round" stroke-linejoin="round"></path><path d="M15 10H8" stroke-linecap="round"></path></svg></span> Sign out</button>
+      </nav>
     </header>
 
     <main class="page-content">
-      <div class="page-header">
+      <header class="page-header">
         <h1>Listing Management</h1>
         <p>Create, edit, and manage your marketplace listings</p>
-      </div>
+      </header>
 
-      <div class="listing-layout">
+      <section class="listing-layout">
         <section class="management-card">
-          <div class="card-title" id="form-title">Create a new listing</div>
-          <div class="card-copy">Add an item to the marketplace or update one of your existing listings.</div>
+          <span class="card-title" id="form-title">Create a new listing</span>
+          <span class="card-copy">Add an item to the marketplace or update one of your existing listings.</span>
 
-          <form class="listing-form" id="listing-form" novalidate>
-            <div class="form-group">
+          <form class="listing-form" id="listing-form" novalidate="">
+            <section class="form-group">
               <label class="form-label" for="listing-title">Title</label>
-              <input class="form-input" id="listing-title" type="text" placeholder="e.g. Calculus textbook" />
+              <input class="form-input" id="listing-title" type="text" maxlength="70" placeholder="e.g. Calculus textbook">
               <span class="form-error" id="title-error"></span>
-            </div>
+            </section>
 
-            <div class="form-group">
+            <section class="form-group">
               <label class="form-label" for="listing-description">Description</label>
-              <textarea class="form-textarea" id="listing-description" placeholder="Add a short description of the item"></textarea>
-            </div>
+              <textarea class="form-textarea" id="listing-description" maxlength="300" placeholder="Add a short description of the item"></textarea>
+              <span class="field-count" id="listing-description-count">0/300</span>
+            </section>
 
-            <div class="form-group">
+            <section class="form-group">
               <label class="form-label" for="listing-image-file">Image</label>
-              <input class="form-input" id="listing-image-file" type="file" accept="image/*" />
+              <input class="form-input" id="listing-image-file" type="file" accept="image/*">
               <span class="form-error" id="image-error"></span>
-            </div>
+            </section>
 
-            <div class="image-preview" id="listing-image-preview">
-              <div class="image-preview-placeholder" id="listing-image-preview-placeholder">Choose an image to preview it here.</div>
-              <img id="listing-image-preview-img" alt="Listing preview" />
-            </div>
+            <figure class="image-preview" id="listing-image-preview">
+              <section class="image-preview-placeholder" id="listing-image-preview-placeholder">Choose an image to preview it here.</section>
+              <img id="listing-image-preview-img" alt="Listing preview">
+            </figure>
 
-            <div class="form-row">
-              <div class="form-group">
+            <section class="form-row">
+              <section class="form-group">
                 <label class="form-label" for="listing-price">Price (ZAR)</label>
-                <input class="form-input" id="listing-price" type="number" min="0" step="1" placeholder="e.g. 450" />
+                <input class="form-input" id="listing-price" type="number" min="0" step="1" placeholder="e.g. 450">
                 <span class="form-error" id="price-error"></span>
-              </div>
-              <div class="form-group">
+              </section>
+              <section class="form-group">
                 <label class="form-label" for="listing-status">Status</label>
                 <select class="form-select" id="listing-status">
                   <option value="active">Active</option>
                   <option value="sold">Sold</option>
                   <option value="archived">Archived</option>
                 </select>
-              </div>
-            </div>
+              </section>
+            </section>
 
-            <div class="form-row">
-              <div class="form-group">
+            <section class="form-row">
+              <section class="form-group">
                 <label class="form-label" for="listing-category">Category</label>
                 <select class="form-select" id="listing-category">
                   <option value="Textbooks">Textbooks</option>
@@ -487,8 +536,8 @@
                   <option value="Notes &amp; Study">Notes &amp; Study</option>
                   <option value="Other">Other</option>
                 </select>
-              </div>
-              <div class="form-group">
+              </section>
+              <section class="form-group">
                 <label class="form-label" for="listing-condition">Condition</label>
                 <select class="form-select" id="listing-condition">
                   <option value="New">New</option>
@@ -497,49 +546,59 @@
                   <option value="Fair">Fair</option>
                   <option value="Used">Used</option>
                 </select>
-              </div>
-            </div>
+              </section>
+            </section>
 
-            <label class="switch-row">
-              <div class="switch-copy">
-                <strong>Open to trades</strong>
-                <span>Turn this on if you are willing to swap instead of only selling.</span>
-              </div>
-              <input id="listing-tradeable" type="checkbox" />
-            </label>
+            <section class="price-guide" id="price-guide">
+              <section class="price-guide-header">
+                <span class="price-guide-title">Fair price guide</span>
+                <span class="price-guide-range" id="price-guide-range"></span>
+              </section>
+              <span class="price-guide-copy" id="price-guide-copy"></span>
+            </section>
 
-            <div class="form-error" id="listing-form-error" style="text-align:center;"></div>
+            <section class="form-group">
+              <label class="form-label" for="listing-type">Listing type</label>
+              <select class="form-select" id="listing-type">
+                <option value="sale">Sale only</option>
+                <option value="trade">Trade only</option>
+                <option value="both">Sale or trade</option>
+              </select>
+            </section>
 
-            <div class="form-actions">
+            <p class="form-error" id="listing-form-error" style="text-align:center;"></p>
+
+            <section class="form-actions">
               <button class="btn btn-primary" id="save-listing-btn" type="submit">Create listing</button>
               <button class="btn btn-secondary" id="cancel-edit-btn" type="button" style="display:none;">Cancel edit</button>
-            </div>
+            </section>
           </form>
         </section>
 
         <section class="listing-board">
-          <div class="board-header">
-            <div>
-              <div class="card-title">Your listings</div>
-              <div class="card-copy">Manage availability, update details, or remove old listings.</div>
-            </div>
-            <div class="board-meta" id="listing-count">Loading your listings...</div>
-          </div>
+          <section class="board-header">
+            <section>
+              <span class="card-title">Your listings</span>
+              <span class="card-copy">Manage availability, update details, or remove old listings.</span>
+            </section>
+            <span class="board-meta" id="listing-count">Loading your listings...</span>
+          </section>
 
-          <div class="listing-stack" id="listing-stack"></div>
+          <section class="listing-stack" id="listing-stack"></section>
         </section>
-      </div>
+      </section>
     </main>
-  </div>
-</div>
+  </section>
+</section>
 
-<div class="toast-container" id="toast-container"></div>
+<aside class="toast-container" id="toast-container"></aside>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <script type="module">
     // Import modules
     import { Auth, initializeSupabase, getSupabaseClient } from '../scripts/auth.js';
     import * as App from '../scripts/app-modular.js';
+    import { getPriceSuggestion } from '../scripts/price-suggestions.js';
     
     // Initialize Supabase
     const _sb = initializeSupabase(window.supabase);
@@ -579,7 +638,7 @@
       price: document.getElementById('listing-price').value,
       category: document.getElementById('listing-category').value,
       condition: document.getElementById('listing-condition').value,
-      isTradeable: document.getElementById('listing-tradeable').checked,
+      listingType: document.getElementById('listing-type').value,
       status: document.getElementById('listing-status').value,
     };
 
@@ -639,6 +698,13 @@
 
   document.getElementById('cancel-edit-btn').addEventListener('click', resetForm);
   document.getElementById('listing-image-file').addEventListener('change', updateImagePreview);
+  document.getElementById('listing-description').addEventListener('input', updateListingDescriptionCount);
+  ['listing-title', 'listing-category', 'listing-condition'].forEach(id => {
+    document.getElementById(id).addEventListener('input', updatePriceGuide);
+    document.getElementById(id).addEventListener('change', updatePriceGuide);
+  });
+  updatePriceGuide();
+  updateListingDescriptionCount();
 
   async function loadMyListings() {
     if (!pageState.user) return;
@@ -666,29 +732,29 @@
 
     stack.innerHTML = pageState.listings.map(listing => `
       <article class="listing-item">
-        <div class="listing-item-header">
-          <div>
-            <div class="listing-item-title">${escapeHtml(listing.title)}</div>
-            <div class="listing-item-meta">${escapeHtml(listing.category)} • ${formatDate(listing.createdAt)}</div>
-          </div>
-          <div class="listing-item-price">${formatCurrency(listing.price)}</div>
-        </div>
-        <div class="listing-content">
-          ${listing.imageUrl ? `<div class="listing-thumb"><img src="${escapeAttribute(listing.imageUrl)}" alt="${escapeAttribute(listing.title)}" /></div>` : ''}
-          <div class="listing-item-copy">${escapeHtml(listing.description || 'No description added yet.')}</div>
-        </div>
-        <div class="listing-item-tags">
+        <section class="listing-item-header">
+          <section>
+            <section class="listing-item-title">${escapeHtml(listing.title)}</section>
+            <section class="listing-item-meta">${escapeHtml(listing.category)} • ${formatDate(listing.createdAt)}</section>
+          </section>
+          <section class="listing-item-price">${formatCurrency(listing.price)}</section>
+        </section>
+        <section class="listing-content">
+          ${listing.imageUrl ? `<section class="listing-thumb"><img src="${escapeAttribute(listing.imageUrl)}" alt="${escapeAttribute(listing.title)}" /></section>` : ''}
+          <section class="listing-item-copy">${escapeHtml(listing.description || 'No description added yet.')}</section>
+        </section>
+        <section class="listing-item-tags">
           <span class="listing-pill ${escapeHtml((listing.status || 'active').toLowerCase())}">${escapeHtml(formatStatusLabel(listing.status))}</span>
           <span class="listing-pill">${escapeHtml(listing.condition)}</span>
-          ${listing.isTradeable ? '<span class="listing-pill trade">Tradeable</span>' : ''}
-        </div>
-        <div class="listing-item-actions">
+          <span class="listing-pill trade">${escapeHtml(formatListingType(listing.listingType))}</span>
+        </section>
+        <section class="listing-item-actions">
           <button class="btn btn-secondary" type="button" data-action="edit" data-id="${listing.id}">Edit</button>
           <button class="btn btn-secondary" type="button" data-action="toggle-status" data-id="${listing.id}">
             ${listing.status === 'active' ? 'Mark sold' : 'Mark active'}
           </button>
           <button class="btn btn-outline-danger" type="button" data-action="delete" data-id="${listing.id}">Delete</button>
-        </div>
+        </section>
       </article>
     `).join('');
 
@@ -718,7 +784,7 @@
         price: listing.price,
         category: listing.category,
         condition: listing.condition,
-        isTradeable: listing.isTradeable,
+        listingType: listing.listingType,
         status: nextStatus,
       });
 
@@ -758,11 +824,13 @@
     document.getElementById('listing-price').value = listing.price;
     document.getElementById('listing-category').value = listing.category;
     document.getElementById('listing-condition').value = listing.condition;
-    document.getElementById('listing-tradeable').checked = listing.isTradeable;
+    document.getElementById('listing-type').value = listing.listingType || (listing.isTradeable ? 'both' : 'sale');
     document.getElementById('listing-status').value = listing.status;
     document.getElementById('save-listing-btn').textContent = 'Save changes';
     document.getElementById('cancel-edit-btn').style.display = 'inline-flex';
     updateImagePreview();
+    updatePriceGuide();
+    updateListingDescriptionCount();
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
@@ -775,17 +843,39 @@
     document.getElementById('listing-status').value = 'active';
     document.getElementById('listing-category').value = 'Textbooks';
     document.getElementById('listing-condition').value = 'New';
+    document.getElementById('listing-type').value = 'sale';
     document.getElementById('save-listing-btn').textContent = 'Create listing';
     document.getElementById('cancel-edit-btn').style.display = 'none';
     updateImagePreview();
+    updatePriceGuide();
+    updateListingDescriptionCount();
+  }
+
+  function updateListingDescriptionCount() {
+    const input = document.getElementById('listing-description');
+    const count = document.getElementById('listing-description-count');
+    const max = Number(input.getAttribute('maxlength')) || 300;
+    count.textContent = `${input.value.length}/${max}`;
+    count.classList.toggle('limit', input.value.length >= max);
+  }
+
+  function updatePriceGuide() {
+    const title = document.getElementById('listing-title').value;
+    const category = document.getElementById('listing-category').value;
+    const condition = document.getElementById('listing-condition').value;
+    const suggestion = getPriceSuggestion({ title, category, condition });
+    const guide = document.getElementById('price-guide');
+    document.getElementById('price-guide-range').textContent = `${formatCurrency(suggestion.low)} - ${formatCurrency(suggestion.high)}`;
+    document.getElementById('price-guide-copy').textContent = `Suggested for ${suggestion.label} in ${condition.toLowerCase()} condition, informed by public South African consumer price data and adjusted for student resale.`;
+    guide.classList.add('show');
   }
 
   function renderEmptyState(message) {
     return `
-      <div class="empty-panel">
+      <section class="empty-panel">
         <h3>No listings to manage yet</h3>
         <p>${escapeHtml(message)}</p>
-      </div>
+      </section>
     `;
   }
 
@@ -804,6 +894,15 @@
       month: 'short',
       year: 'numeric',
     }).format(new Date(value));
+  }
+
+  function formatListingType(value) {
+    const labels = {
+      sale: 'Sale only',
+      trade: 'Trade only',
+      both: 'Sale or trade',
+    };
+    return labels[value] || 'Sale only';
   }
 
   function clearErrors() {
@@ -874,5 +973,6 @@
   }
 
   </script>
-</body>
-</html>
+
+
+</body></html>

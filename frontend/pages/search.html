@@ -1,12 +1,10 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<!DOCTYPE html><html lang="en"><head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Search Listings - UniMart</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="../styles/styles.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../styles/styles.css">
   <style>
     .market-toolbar {
       display: flex;
@@ -132,17 +130,93 @@
     }
 
     .listing-card-footer {
-      display: flex;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
       align-items: center;
-      justify-content: space-between;
       gap: 12px;
-      padding-top: 4px;
+      padding-top: 12px;
       border-top: 1px solid var(--sand);
     }
 
     .listing-card-date {
       font-size: 0.76rem;
       color: var(--muted);
+    }
+
+    .seller-summary {
+      display: grid;
+      gap: 4px;
+      min-width: 0;
+    }
+
+    .seller-line {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      min-width: 0;
+      color: var(--ink);
+      font-size: 0.78rem;
+      font-weight: 700;
+    }
+
+    .seller-name {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .seller-rating-row {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      color: var(--muted);
+      font-size: 0.74rem;
+      min-height: 18px;
+      line-height: 1.35;
+    }
+
+    .seller-stars {
+      display: inline-flex;
+      gap: 1px;
+      color: #d49b24;
+      letter-spacing: 0;
+      font-size: 0.84rem;
+      line-height: 1;
+    }
+
+    .seller-stars span.empty {
+      color: #d8d2c5;
+    }
+
+    .card-footer-actions {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .save-listing-btn {
+      width: 38px;
+      height: 38px;
+      border: 1px solid var(--border);
+      border-radius: 50%;
+      background: var(--linen);
+      color: var(--muted);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      transition: 0.18s ease;
+    }
+
+    .save-listing-btn:hover,
+    .save-listing-btn.saved {
+      background: #f8e9e7;
+      color: #b94135;
+      border-color: #ecc4be;
+    }
+
+    .save-listing-btn svg {
+      width: 18px;
+      height: 18px;
     }
 
     .listing-card-action {
@@ -152,11 +226,13 @@
       color: var(--sage);
       font-size: 0.82rem;
       font-weight: 700;
+      padding: 9px 10px;
+      border-radius: var(--radius);
+      background: #eef6f0;
     }
 
     .listing-card-action span:last-child {
-      text-decoration: underline;
-      text-underline-offset: 3px;
+      text-decoration: none;
     }
 
     .details-modal {
@@ -174,22 +250,26 @@
       display: flex;
     }
 
+    #seller-modal {
+      z-index: 1600;
+    }
+
     .details-dialog {
-      width: min(920px, 100%);
+      width: min(980px, 100%);
       max-height: 90vh;
       overflow: auto;
       background: #fff;
       border-radius: 22px;
       box-shadow: var(--shadow-lg);
       border: 1px solid var(--border);
-      padding: 24px;
+      padding: 26px;
     }
 
     .details-header {
       display: flex;
       justify-content: space-between;
       gap: 16px;
-      margin-bottom: 18px;
+      margin-bottom: 20px;
     }
 
     .details-title {
@@ -223,13 +303,13 @@
 
     .details-body {
       display: grid;
-      grid-template-columns: minmax(0, 1.05fr) minmax(280px, 0.95fr);
-      gap: 22px;
+      grid-template-columns: minmax(0, 1.08fr) minmax(320px, 0.92fr);
+      gap: 28px;
     }
 
     .modal-image {
       width: 100%;
-      aspect-ratio: 16 / 11;
+      aspect-ratio: 4 / 3;
       border-radius: 18px;
       overflow: hidden;
       background: var(--linen);
@@ -249,7 +329,7 @@
     .details-panel {
       display: flex;
       flex-direction: column;
-      gap: 16px;
+      gap: 14px;
     }
 
     .details-price {
@@ -258,28 +338,270 @@
       color: var(--sage);
     }
 
+    .details-topline {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 14px;
+    }
+
+    .details-save-btn {
+      flex-shrink: 0;
+    }
+
     .details-copy {
       font-size: 0.9rem;
       color: var(--muted);
       line-height: 1.7;
+      padding: 14px 0;
+      border-top: 1px solid var(--sand);
+      border-bottom: 1px solid var(--sand);
     }
 
     .buyer-actions {
       display: flex;
       flex-direction: column;
+      gap: 12px;
+      padding: 14px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background: var(--linen);
+    }
+
+    .buyer-message-input {
+      min-height: 96px;
+      max-height: 150px;
+      resize: none;
+      overflow-y: auto;
+      line-height: 1.45;
+    }
+
+    .offer-box {
+      display: none;
       gap: 10px;
+      padding: 12px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background: #fff;
+    }
+
+    .offer-box.show {
+      display: grid;
+    }
+
+    .offer-box-title {
+      color: var(--ink);
+      font-size: 0.84rem;
+      font-weight: 800;
+    }
+
+    .offer-fields {
+      display: grid;
+      grid-template-columns: minmax(120px, 0.45fr) minmax(0, 1fr);
+      gap: 10px;
+    }
+
+    .offer-note-input {
+      min-height: 70px;
+      max-height: 120px;
+      resize: none;
+      overflow-y: auto;
+      line-height: 1.45;
+    }
+
+    .message-helper-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      min-height: 18px;
+    }
+
+    .message-count {
+      margin-left: auto;
+      color: var(--muted);
+      font-size: 0.74rem;
+      white-space: nowrap;
     }
 
     .buyer-action-row {
       display: flex;
-      flex-wrap: wrap;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
       gap: 10px;
+    }
+
+    .buyer-action-row .btn {
+      display: inline-flex;
+      align-items: center;
+      min-height: 50px;
+      border-radius: var(--radius);
+      justify-content: center;
+      width: 100%;
+    }
+
+    .buyer-action-row .btn-secondary {
+      background: #fff;
+      border: 1px solid var(--border);
+      color: var(--sage);
+      box-shadow: none;
+    }
+
+    .buyer-action-row .btn-secondary:hover {
+      background: #eef6f0;
+      border-color: rgba(58, 102, 69, 0.3);
+    }
+
+    .safety-action {
+      align-self: flex-start;
+      color: #9f3c33;
+      font-size: 0.82rem;
+      font-weight: 800;
+      margin-top: -4px;
+      padding: 0 0 2px;
+    }
+
+    .safety-action:hover {
+      color: #76251f;
+      text-decoration: underline;
+      text-underline-offset: 3px;
+    }
+
+    .seller-detail {
+      display: grid;
+      gap: 6px;
+    }
+
+    .seller-detail .seller-rating-row {
+      font-weight: 500;
+    }
+
+    .seller-profile-link {
+      justify-self: flex-start;
+      color: var(--sage);
+      font-size: 0.94rem;
+      font-weight: 800;
+      padding: 0;
+    }
+
+    .seller-profile-link:hover {
+      color: var(--sage-dark);
+      text-decoration: underline;
+      text-underline-offset: 3px;
+    }
+
+    .seller-trust-line {
+      color: var(--muted);
+      font-size: 0.82rem;
+      font-weight: 600;
     }
 
     .details-grid {
       display: grid;
       grid-template-columns: 1fr 1fr;
       gap: 12px;
+    }
+
+    .seller-profile-dialog {
+      width: min(560px, 100%);
+    }
+
+    .seller-profile-head {
+      display: flex;
+      align-items: flex-start;
+      gap: 14px;
+      padding-bottom: 18px;
+      margin-bottom: 18px;
+      border-bottom: 1px solid var(--sand);
+    }
+
+    .seller-profile-avatar {
+      width: 56px;
+      height: 56px;
+      border-radius: 50%;
+      background: var(--sage);
+      color: #fff;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      letter-spacing: 0.02em;
+      flex-shrink: 0;
+    }
+
+    .seller-profile-name {
+      color: var(--ink);
+      font-size: 1.2rem;
+      font-weight: 850;
+      margin-bottom: 3px;
+    }
+
+    .seller-profile-subtitle {
+      color: var(--muted);
+      font-size: 0.88rem;
+      line-height: 1.45;
+    }
+
+    .seller-profile-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+
+    .seller-profile-stat {
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background: var(--linen);
+      padding: 12px;
+    }
+
+    .seller-profile-stat strong {
+      display: block;
+      color: var(--muted);
+      font-size: 0.74rem;
+      letter-spacing: 0.05em;
+      margin-bottom: 5px;
+      text-transform: uppercase;
+    }
+
+    .seller-profile-stat span {
+      color: var(--ink);
+      font-size: 0.96rem;
+      font-weight: 750;
+    }
+
+    .seller-profile-section {
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background: #fff;
+      padding: 12px;
+    }
+
+    .seller-profile-section-title {
+      color: var(--ink);
+      font-weight: 800;
+      margin-bottom: 8px;
+    }
+
+    .seller-history-summary {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 8px;
+    }
+
+    .seller-history-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 5px 9px;
+      border-radius: 999px;
+      background: #fff;
+      border: 1px solid var(--border);
+      color: var(--muted);
+      font-size: 0.76rem;
+      font-weight: 700;
     }
 
     .details-meta-card {
@@ -329,7 +651,16 @@
       }
 
       .details-body,
-      .details-grid {
+      .details-grid,
+      .seller-profile-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .buyer-action-row {
+        grid-template-columns: 1fr;
+      }
+
+      .offer-fields {
         grid-template-columns: 1fr;
       }
     }
@@ -337,126 +668,127 @@
 </head>
 <body>
 
-<div class="overlay" id="sidebar-overlay"></div>
+<aside class="overlay" id="sidebar-overlay"></aside>
 
-<div class="app-shell">
+<section class="app-shell">
   <aside class="sidebar" id="sidebar">
-    <div class="sidebar-logo">
-      <img src="../assets/unimart-logo.png" alt="UniMart Logo" class="logo-img" />
-    </div>
+    <figure class="sidebar-logo">
+      <img src="../assets/unimart-logo.png" alt="UniMart Logo" class="logo-img">
+    </figure>
 
     <nav class="sidebar-nav">
-      <div class="sidebar-section-label">Main</div>
+      <span class="sidebar-section-label">Main</span>
 
       <a href="search.html" class="nav-item" data-page="search.html">
         <svg class="nav-icon" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8">
-          <circle cx="8.5" cy="8.5" r="5.25"/><path d="m13.75 13.75 3 3" stroke-linecap="round"/>
+          <circle cx="8.5" cy="8.5" r="5.25"></circle><path d="m13.75 13.75 3 3" stroke-linecap="round"></path>
         </svg>
         Search Listings
       </a>
 
       <a href="dashboard.html" class="nav-item" data-page="dashboard.html">
         <svg class="nav-icon" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8">
-          <rect x="2.5" y="2.5" width="6" height="6" rx="1.5"/>
-          <rect x="11.5" y="2.5" width="6" height="6" rx="1.5"/>
-          <rect x="2.5" y="11.5" width="6" height="6" rx="1.5"/>
-          <rect x="11.5" y="11.5" width="6" height="6" rx="1.5"/>
+          <rect x="2.5" y="2.5" width="6" height="6" rx="1.5"></rect>
+          <rect x="11.5" y="2.5" width="6" height="6" rx="1.5"></rect>
+          <rect x="2.5" y="11.5" width="6" height="6" rx="1.5"></rect>
+          <rect x="11.5" y="11.5" width="6" height="6" rx="1.5"></rect>
         </svg>
         Dashboard
       </a>
 
-      <div class="sidebar-section-label">Manage</div>
+      <span class="sidebar-section-label">Manage</span>
 
       <a href="listings.html" class="nav-item" data-page="listings.html">
         <svg class="nav-icon" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8">
-          <path d="M4 6h12M4 10h8M4 14h5" stroke-linecap="round"/>
+          <path d="M4 6h12M4 10h8M4 14h5" stroke-linecap="round"></path>
         </svg>
         Listing Management
       </a>
     </nav>
 
-    <div class="sidebar-footer">
-      <div class="sidebar-user dropdown" data-dropdown-trigger="user-menu">
-        <div class="user-avatar" data-user-initials>?</div>
-        <div class="user-info">
-          <div class="user-name" data-user-name>Loading...</div>
-          <div class="user-role" data-user-role></div>
-        </div>
-        <span class="user-chevron"><span class="ui-icon ui-icon-sm"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8"><path d="m5 7 5 6 5-6" stroke-linecap="round" stroke-linejoin="round"/></svg></span></span>
-        <div class="dropdown-menu" id="user-menu">
-          <a class="dropdown-item" href="profile.html"><span class="ui-icon"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="10" cy="7" r="3.5"/><path d="M3.5 16c0-3.59 2.91-6.5 6.5-6.5s6.5 2.91 6.5 6.5" stroke-linecap="round"/></svg></span> My Profile</a>
-          <div class="dropdown-divider"></div>
-          <div class="dropdown-item danger" data-action="signout"><span class="ui-icon"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M8 5H5.5A1.5 1.5 0 0 0 4 6.5v7A1.5 1.5 0 0 0 5.5 15H8" stroke-linecap="round"/><path d="M11 6l4 4-4 4" stroke-linecap="round" stroke-linejoin="round"/><path d="M15 10H8" stroke-linecap="round"/></svg></span> Sign out</div>
-        </div>
-      </div>
-    </div>
+    <footer class="sidebar-footer">
+      <nav class="sidebar-user dropdown" data-dropdown-trigger="user-menu">
+        <figure class="user-avatar" data-user-initials="">?</figure>
+        <section class="user-info">
+          <span class="user-name" data-user-name="">Loading...</span>
+          <span class="user-role" data-user-role=""></span>
+        </section>
+        <span class="user-chevron"><span class="ui-icon ui-icon-sm"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8"><path d="m5 7 5 6 5-6" stroke-linecap="round" stroke-linejoin="round"></path></svg></span></span>
+        <nav class="dropdown-menu" id="user-menu">
+          <a class="dropdown-item" href="profile.html"><span class="ui-icon"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="10" cy="7" r="3.5"></circle><path d="M3.5 16c0-3.59 2.91-6.5 6.5-6.5s6.5 2.91 6.5 6.5" stroke-linecap="round"></path></svg></span> My Profile</a>
+          <section class="dropdown-divider"></section>
+          <button class="dropdown-item danger" data-action="signout" type="button"><span class="ui-icon"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M8 5H5.5A1.5 1.5 0 0 0 4 6.5v7A1.5 1.5 0 0 0 5.5 15H8" stroke-linecap="round"></path><path d="M11 6l4 4-4 4" stroke-linecap="round" stroke-linejoin="round"></path><path d="M15 10H8" stroke-linecap="round"></path></svg></span> Sign out</button>
+        </nav>
+      </nav>
+    </footer>
   </aside>
 
-  <div class="main-content">
+  <section class="main-content">
     <header class="topbar">
       <button class="topbar-icon-btn" id="sidebar-toggle" style="display:none">
         <svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M3 5h14M3 10h14M3 15h14" stroke-linecap="round"/>
+          <path d="M3 5h14M3 10h14M3 15h14" stroke-linecap="round"></path>
         </svg>
       </button>
 
       <span class="topbar-title">Search Listings</span>
 
-      <div class="topbar-search">
+      <search class="topbar-search">
         <span class="search-icon">
           <svg width="14" height="14" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2">
-            <circle cx="8.5" cy="8.5" r="5.25"/><path d="m13.75 13.75 3 3" stroke-linecap="round"/>
+            <circle cx="8.5" cy="8.5" r="5.25"></circle><path d="m13.75 13.75 3 3" stroke-linecap="round"></path>
           </svg>
         </span>
-        <input id="listing-search" type="search" placeholder="Search for textbooks, electronics, furniture..." />
-      </div>
+        <input id="listing-search" type="search" placeholder="Search for textbooks, electronics, furniture...">
+      </search>
 
-      <div class="topbar-actions">
-        <div class="notification-wrap">
-          <button class="topbar-icon-btn" type="button" title="Notifications" data-notification-trigger>
+      <nav class="topbar-actions">
+        <aside class="notification-wrap">
+          <button class="topbar-icon-btn" type="button" title="Notifications" data-notification-trigger="">
             <svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8">
-              <path d="M10 2a6 6 0 0 1 6 6v3.5l1.5 2.5H2.5L4 11.5V8a6 6 0 0 1 6-6z"/>
-              <path d="M8 16a2 2 0 0 0 4 0" stroke-linecap="round"/>
+              <path d="M10 2a6 6 0 0 1 6 6v3.5l1.5 2.5H2.5L4 11.5V8a6 6 0 0 1 6-6z"></path>
+              <path d="M8 16a2 2 0 0 0 4 0" stroke-linecap="round"></path>
             </svg>
             <span class="notification-dot" id="topbar-notification-count">0</span>
           </button>
-          <div class="dropdown-menu notification-menu" id="topbar-notification-menu">
-            <div class="notification-header">Notifications</div>
-            <div id="topbar-notification-list"></div>
-          </div>
-        </div>
-        <div class="topbar-avatar dropdown" data-dropdown-trigger="topbar-user-menu" data-user-initials>?</div>
-      </div>
+          <nav class="dropdown-menu notification-menu" id="topbar-notification-menu">
+            <header class="notification-header">Notifications</header>
+            <section id="topbar-notification-list"></section>
+          </nav>
+        </aside>
+        <figure class="topbar-avatar dropdown" data-dropdown-trigger="topbar-user-menu" data-user-initials="">?</figure>
+      </nav>
 
-      <div class="dropdown-menu" id="topbar-user-menu">
+      <nav class="dropdown-menu" id="topbar-user-menu">
         <a class="dropdown-item" href="profile.html">
-          <span class="ui-icon"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="10" cy="7" r="3.5"/><path d="M3.5 16c0-3.59 2.91-6.5 6.5-6.5s6.5 2.91 6.5 6.5" stroke-linecap="round"/></svg></span> <span data-user-name>My Account</span>
+          <span class="ui-icon"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="10" cy="7" r="3.5"></circle><path d="M3.5 16c0-3.59 2.91-6.5 6.5-6.5s6.5 2.91 6.5 6.5" stroke-linecap="round"></path></svg></span> <span data-user-name="">My Account</span>
         </a>
-        <div class="dropdown-divider"></div>
-        <div class="dropdown-item danger" data-action="signout">
-          <span class="ui-icon"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M8 5H5.5A1.5 1.5 0 0 0 4 6.5v7A1.5 1.5 0 0 0 5.5 15H8" stroke-linecap="round"/><path d="M11 6l4 4-4 4" stroke-linecap="round" stroke-linejoin="round"/><path d="M15 10H8" stroke-linecap="round"/></svg></span> Sign out
-        </div>
-      </div>
+        <section class="dropdown-divider"></section>
+        <button class="dropdown-item danger" data-action="signout" type="button">
+          <span class="ui-icon"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M8 5H5.5A1.5 1.5 0 0 0 4 6.5v7A1.5 1.5 0 0 0 5.5 15H8" stroke-linecap="round"></path><path d="M11 6l4 4-4 4" stroke-linecap="round" stroke-linejoin="round"></path><path d="M15 10H8" stroke-linecap="round"></path></svg></span> Sign out
+        </button>
+      </nav>
     </header>
 
     <main class="page-content">
-      <div class="page-header">
+      <header class="page-header">
         <h1>Marketplace</h1>
         <p>Browse listings from students at your campus</p>
-      </div>
+      </header>
 
-      <div class="filter-bar">
+      <section class="filter-bar">
         <button class="filter-chip active" data-category="all">All</button>
+        <button class="filter-chip" data-category="saved">Saved</button>
         <button class="filter-chip" data-category="Textbooks">Textbooks</button>
         <button class="filter-chip" data-category="Electronics">Electronics</button>
         <button class="filter-chip" data-category="Furniture">Furniture</button>
         <button class="filter-chip" data-category="Clothing">Clothing</button>
         <button class="filter-chip" data-category="Notes &amp; Study">Notes &amp; Study</button>
         <button class="filter-chip" data-category="Other">Other</button>
-      </div>
+      </section>
 
-      <div class="advanced-filters" aria-label="Marketplace filters">
-        <div class="form-group">
+      <section class="advanced-filters" aria-label="Marketplace filters">
+        <section class="form-group">
           <label class="form-label" for="condition-filter">Condition</label>
           <select class="form-input" id="condition-filter">
             <option value="all">Any condition</option>
@@ -466,98 +798,132 @@
             <option value="Fair">Fair</option>
             <option value="Used">Used</option>
           </select>
-        </div>
-        <div class="form-group">
-          <label class="form-label" for="tradeable-filter">Tradeable</label>
-          <select class="form-input" id="tradeable-filter">
-            <option value="all">Any trade status</option>
-            <option value="yes">Tradeable only</option>
-            <option value="no">Not tradeable</option>
+        </section>
+        <section class="form-group">
+          <label class="form-label" for="listing-type-filter">Listing type</label>
+          <select class="form-input" id="listing-type-filter">
+            <option value="all">Any listing type</option>
+            <option value="sale">Sale only</option>
+            <option value="trade">Trade only</option>
+            <option value="both">Sale or trade</option>
           </select>
-        </div>
-        <div class="form-group">
+        </section>
+        <section class="form-group">
           <label class="form-label" for="min-price-filter">Min price</label>
-          <input class="form-input" id="min-price-filter" type="number" min="0" step="1" inputmode="numeric" placeholder="R0" />
-        </div>
-        <div class="form-group">
+          <input class="form-input" id="min-price-filter" type="number" min="0" step="1" inputmode="numeric" placeholder="R0">
+        </section>
+        <section class="form-group">
           <label class="form-label" for="max-price-filter">Max price</label>
-          <input class="form-input" id="max-price-filter" type="number" min="0" step="1" inputmode="numeric" placeholder="Any" />
-        </div>
-        <div class="advanced-filter-actions">
+          <input class="form-input" id="max-price-filter" type="number" min="0" step="1" inputmode="numeric" placeholder="Any">
+        </section>
+        <section class="advanced-filter-actions">
           <button class="btn btn-outline" id="clear-filters-btn" type="button">Clear filters</button>
-        </div>
+        </section>
         <span class="form-error" id="price-filter-error" style="grid-column:1 / -1;"></span>
-      </div>
+      </section>
 
-      <div class="market-toolbar">
-        <div class="results-meta" id="results-meta">Loading listings...</div>
-      </div>
+      <section class="market-toolbar">
+        <span class="results-meta" id="results-meta">Loading listings...</span>
+      </section>
 
-      <div class="empty-state" id="listings-empty">
-        <div class="empty-state-icon"><span class="ui-icon"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 8.5h12V16H4z"/><path d="M3 8.5 4.5 4h11L17 8.5" stroke-linejoin="round"/><path d="M8 16v-3.5h4V16" stroke-linecap="round"/></svg></span></div>
+      <aside class="empty-state" id="listings-empty">
+        <figure class="empty-state-icon"><span class="ui-icon"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 8.5h12V16H4z"></path><path d="M3 8.5 4.5 4h11L17 8.5" stroke-linejoin="round"></path><path d="M8 16v-3.5h4V16" stroke-linecap="round"></path></svg></span></figure>
         <h3 id="empty-title">No listings yet</h3>
         <p id="empty-copy">Be the first to list something, or check back soon - your fellow students will be adding items shortly.</p>
-      </div>
+      </aside>
 
-      <div class="listings-grid" id="listings-grid" style="display:none"></div>
+      <section class="listings-grid" id="listings-grid" style="display:none"></section>
     </main>
-  </div>
-</div>
+  </section>
+</section>
 
-<div class="toast-container" id="toast-container"></div>
+<aside class="toast-container" id="toast-container"></aside>
 
-<div class="details-modal" id="listing-modal" aria-hidden="true">
-  <div class="details-dialog" role="dialog" aria-modal="true" aria-labelledby="modal-title">
-    <div class="details-header">
-      <div>
-        <div class="details-title" id="modal-title">Listing details</div>
-        <div class="details-subtitle" id="modal-subtitle"></div>
-      </div>
+<aside class="details-modal" id="listing-modal" aria-hidden="true">
+  <article class="details-dialog" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+    <header class="details-header">
+      <section>
+        <h2 class="details-title" id="modal-title">Listing details</h2>
+        <p class="details-subtitle" id="modal-subtitle"></p>
+      </section>
       <button class="details-close" id="modal-close" type="button" aria-label="Close listing details">
-        <span class="ui-icon"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M6 6l8 8M14 6l-8 8" stroke-linecap="round"/></svg></span>
+        <span class="ui-icon"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M6 6l8 8M14 6l-8 8" stroke-linecap="round"></path></svg></span>
       </button>
-    </div>
+    </header>
 
-    <div class="details-body">
-      <div class="modal-image empty" id="modal-image-wrap">
+    <section class="details-body">
+      <figure class="modal-image empty" id="modal-image-wrap">
         <span id="modal-image-empty">No image available for this listing.</span>
-        <img id="modal-image" alt="Listing image" style="display:none;" />
-      </div>
+        <img id="modal-image" alt="Listing image" style="display:none;">
+      </figure>
 
-      <div class="details-panel">
-        <div class="details-price" id="modal-price"></div>
-        <div class="listing-tags" id="modal-tags"></div>
-        <div class="details-copy" id="modal-description"></div>
-        <div class="buyer-actions" id="modal-buyer-actions">
-          <textarea class="form-input" id="buyer-message-input" rows="3" placeholder="Ask a question or make an offer..."></textarea>
-          <span class="form-error" id="buyer-message-error"></span>
-          <div class="buyer-action-row">
+      <section class="details-panel">
+        <section class="details-topline">
+          <span class="details-price" id="modal-price"></span>
+          <button class="save-listing-btn details-save-btn" id="modal-save-btn" type="button" aria-label="Save listing"></button>
+        </section>
+        <nav class="listing-tags" id="modal-tags"></nav>
+        <p class="details-copy" id="modal-description"></p>
+        <section class="buyer-actions" id="modal-buyer-actions">
+          <textarea class="form-input buyer-message-input" id="buyer-message-input" rows="3" maxlength="240" placeholder="Ask a question about this listing..."></textarea>
+          <section class="message-helper-row">
+            <span class="form-error" id="buyer-message-error"></span>
+            <span class="message-count" id="buyer-message-count">0/240</span>
+          </section>
+          <article class="offer-box" id="offer-box">
+            <span class="offer-box-title">Offer details</span>
+            <section class="offer-fields">
+              <input class="form-input" id="offer-amount-input" type="number" min="0" step="1" placeholder="Amount, e.g. 450">
+              <textarea class="form-input offer-note-input" id="offer-note-input" rows="2" maxlength="180" placeholder="Add a short offer note or trade idea..."></textarea>
+            </section>
+            <section class="message-helper-row">
+              <span class="form-error" id="offer-error"></span>
+              <span class="message-count" id="offer-note-count">0/180</span>
+            </section>
+          </article>
+          <nav class="buyer-action-row">
             <button class="btn btn-primary" type="button" data-buyer-action="message">Message seller</button>
             <button class="btn btn-secondary" type="button" data-buyer-action="offer">Make offer</button>
-          </div>
-        </div>
-        <div class="details-grid">
-          <div class="details-meta-card">
+          </nav>
+        </section>
+        <button class="btn-reset safety-action" id="report-listing-btn" type="button">Report listing</button>
+        <section class="details-grid">
+          <article class="details-meta-card">
             <strong>Condition</strong>
             <span id="modal-condition"></span>
-          </div>
-          <div class="details-meta-card">
+          </article>
+          <article class="details-meta-card">
             <strong>Status</strong>
             <span id="modal-status"></span>
-          </div>
-          <div class="details-meta-card">
+          </article>
+          <article class="details-meta-card">
             <strong>Seller</strong>
-            <span id="modal-seller"></span>
-          </div>
-          <div class="details-meta-card">
+            <span class="seller-detail" id="modal-seller"></span>
+          </article>
+          <article class="details-meta-card">
             <strong>Listed on</strong>
             <span id="modal-date"></span>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
+          </article>
+        </section>
+      </section>
+    </section>
+  </article>
+</aside>
+
+<aside class="details-modal" id="seller-modal" aria-hidden="true">
+  <article class="details-dialog seller-profile-dialog" role="dialog" aria-modal="true" aria-labelledby="seller-profile-title">
+    <header class="details-header">
+      <section>
+        <h2 class="details-title" id="seller-profile-title">Seller profile</h2>
+        <p class="details-subtitle">Public marketplace details</p>
+      </section>
+      <button class="details-close" id="seller-modal-close" type="button" aria-label="Close seller profile">
+        <span class="ui-icon"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M6 6l8 8M14 6l-8 8" stroke-linecap="round"></path></svg></span>
+      </button>
+    </header>
+    <section id="seller-profile-content"></section>
+  </article>
+</aside>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <script type="module">
@@ -582,19 +948,25 @@
     query: '',
     category: 'all',
     condition: 'all',
-    tradeable: 'all',
+    listingType: 'all',
     minPrice: '',
     maxPrice: '',
     user: null,
     selectedListing: null,
+    savedListings: new Set(JSON.parse(localStorage.getItem('unimart_saved_listings') || '[]')),
+    savedOnly: false,
+    savedListingsRemoteReady: false,
   };
   const modal = document.getElementById('listing-modal');
+  const sellerModal = document.getElementById('seller-modal');
 
   document.querySelectorAll('.filter-chip').forEach(chip => {
     chip.addEventListener('click', function () {
       document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
       this.classList.add('active');
-      state.category = this.dataset.category || 'all';
+      const category = this.dataset.category || 'all';
+      state.savedOnly = category === 'saved';
+      state.category = state.savedOnly ? 'all' : category;
       renderListings();
     });
   });
@@ -610,7 +982,7 @@
   });
 
   const conditionFilter = document.getElementById('condition-filter');
-  const tradeableFilter = document.getElementById('tradeable-filter');
+  const listingTypeFilter = document.getElementById('listing-type-filter');
   const minPriceFilter = document.getElementById('min-price-filter');
   const maxPriceFilter = document.getElementById('max-price-filter');
   const clearFiltersBtn = document.getElementById('clear-filters-btn');
@@ -620,8 +992,8 @@
     renderListings();
   });
 
-  tradeableFilter.addEventListener('change', function () {
-    state.tradeable = this.value || 'all';
+  listingTypeFilter.addEventListener('change', function () {
+    state.listingType = this.value || 'all';
     renderListings();
   });
 
@@ -635,11 +1007,30 @@
   clearFiltersBtn.addEventListener('click', clearFilters);
 
   document.getElementById('modal-close').addEventListener('click', closeListingModal);
+  document.getElementById('seller-modal-close').addEventListener('click', closeSellerModal);
+  document.getElementById('buyer-message-input').addEventListener('input', updateBuyerMessageMeta);
+  document.getElementById('offer-note-input').addEventListener('input', updateOfferMeta);
+  document.getElementById('offer-amount-input').addEventListener('input', function () {
+    document.getElementById('offer-error').textContent = '';
+  });
+  document.getElementById('modal-save-btn').addEventListener('click', function (event) {
+    if (!state.selectedListing) return;
+    toggleSavedListingById(state.selectedListing.id).then(() => renderListings());
+    updateModalSaveButton(state.selectedListing);
+  });
   modal.addEventListener('click', function (event) {
     if (event.target === modal) closeListingModal();
   });
+  sellerModal.addEventListener('click', function (event) {
+    if (event.target === sellerModal) closeSellerModal();
+  });
   document.addEventListener('keydown', function (event) {
-    if (event.key === 'Escape') closeListingModal();
+    if (event.key !== 'Escape') return;
+    if (sellerModal.classList.contains('show')) {
+      closeSellerModal();
+      return;
+    }
+    closeListingModal();
   });
 
   initPage().then(user => {
@@ -653,6 +1044,7 @@
     }
 
     loadListings();
+    loadSavedListings();
   });
 
   async function loadListings() {
@@ -670,12 +1062,26 @@
     renderListings();
   }
 
+  async function loadSavedListings() {
+    if (!state.user || !Auth.getSavedListingIds) return;
+    const result = await Auth.getSavedListingIds(state.user.id);
+    if (result.error) {
+      state.savedListingsRemoteReady = false;
+      return;
+    }
+    state.savedListingsRemoteReady = true;
+    state.savedListings = new Set(result.listingIds || []);
+    localStorage.setItem('unimart_saved_listings', JSON.stringify([...state.savedListings]));
+    renderListings();
+  }
+
   function renderListings() {
     const priceError = validatePriceFilters();
     const filtered = state.listings.filter(listing => {
+      const matchesSaved = !state.savedOnly || state.savedListings.has(listing.id);
       const matchesCategory = state.category === 'all' || normalizeCategory(listing.category) === normalizeCategory(state.category);
       const matchesCondition = state.condition === 'all' || normalizeCondition(listing.condition) === normalizeCondition(state.condition);
-      const matchesTradeable = state.tradeable === 'all' || (state.tradeable === 'yes' && listing.isTradeable) || (state.tradeable === 'no' && !listing.isTradeable);
+      const matchesListingType = state.listingType === 'all' || getListingType(listing) === state.listingType;
       const listingPrice = Number(listing.price) || 0;
       const minPrice = parsePriceFilter(state.minPrice);
       const maxPrice = parsePriceFilter(state.maxPrice);
@@ -686,11 +1092,11 @@
         listing.description,
         listing.category,
         listing.condition,
-        listing.isTradeable ? 'tradeable trade swap' : 'not tradeable',
+        formatListingType(getListingType(listing)),
         String(listing.price),
       ].join(' ').toLowerCase();
       const matchesQuery = !state.query || haystack.includes(state.query);
-      return !priceError && matchesCategory && matchesCondition && matchesTradeable && matchesMinPrice && matchesMaxPrice && matchesQuery;
+      return !priceError && matchesSaved && matchesCategory && matchesCondition && matchesListingType && matchesMinPrice && matchesMaxPrice && matchesQuery;
     });
 
     const grid = document.getElementById('listings-grid');
@@ -710,9 +1116,11 @@
     resultsMeta.textContent = `${filtered.length} listing${filtered.length === 1 ? '' : 's'} found${getFilterSummary()}`;
 
     if (!filtered.length) {
-      document.getElementById('empty-title').textContent = 'No matching listings';
-      document.getElementById('empty-copy').textContent = hasActiveFilters()
-        ? 'No listings match the current keyword, category, condition, tradeable, and price filters. Clear filters or adjust the filters to see more results.'
+      document.getElementById('empty-title').textContent = state.savedOnly ? 'No saved listings yet' : 'No matching listings';
+      document.getElementById('empty-copy').textContent = state.savedOnly && !state.savedListings.size
+        ? 'Tap the heart on a listing to save it here for later.'
+        : hasActiveFilters()
+        ? 'No listings match the current keyword, category, condition, listing type, and price filters. Clear filters or adjust the filters to see more results.'
         : 'Try a different search term or switch to another category.';
       empty.style.display = 'flex';
       grid.style.display = 'none';
@@ -735,38 +1143,83 @@
         if (listing) openListingModal(listing);
       });
     });
+    grid.querySelectorAll('[data-save-listing]').forEach(button => {
+      button.addEventListener('click', toggleSavedListing);
+    });
   }
 
   function renderListingCard(listing) {
     const description = listing.description
       ? escapeHtml(listing.description.length > 110 ? `${listing.description.slice(0, 107)}...` : listing.description)
       : 'No description added yet.';
+    const isSaved = state.savedListings.has(listing.id);
 
     return `
       <article class="listing-card" data-id="${listing.id}" tabindex="0" role="button" aria-label="Open ${escapeAttribute(listing.title)} details">
-        ${listing.imageUrl ? `<div class="listing-image"><img src="${escapeAttribute(listing.imageUrl)}" alt="${escapeAttribute(listing.title)}" /></div>` : ''}
-        <div class="listing-card-header">
-          <div>
-            <div class="listing-card-title">${escapeHtml(listing.title)}</div>
-            <div class="listing-card-meta">${escapeHtml(listing.category)} - ${formatDate(listing.createdAt)}</div>
-          </div>
-          <div class="listing-price">${formatCurrency(listing.price)}</div>
-        </div>
-        <div class="listing-description">${description}</div>
-        <div class="listing-tags">
+        ${listing.imageUrl ? `<section class="listing-image"><img src="${escapeAttribute(listing.imageUrl)}" alt="${escapeAttribute(listing.title)}" /></section>` : ''}
+        <section class="listing-card-header">
+          <section>
+            <section class="listing-card-title">${escapeHtml(listing.title)}</section>
+            <section class="listing-card-meta">${escapeHtml(listing.category)} - ${formatDate(listing.createdAt)}</section>
+          </section>
+          <section class="listing-price">${formatCurrency(listing.price)}</section>
+        </section>
+        <section class="listing-description">${description}</section>
+        <section class="listing-tags">
           <span class="listing-tag">${escapeHtml(listing.condition)}</span>
-          ${listing.isTradeable ? '<span class="listing-tag trade">Tradeable</span>' : ''}
+          <span class="listing-tag trade">${escapeHtml(formatListingType(getListingType(listing)))}</span>
           <span class="listing-tag">${escapeHtml(formatStatusLabel(listing.status))}</span>
-        </div>
-        <div class="listing-card-footer">
-          <div class="listing-card-date">Seller: ${escapeHtml(getSellerName(listing))}</div>
-          <div class="listing-card-action">
-            <span class="inline-action-icon"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8"><path d="m8.5 5 5 5-5 5" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
-            <span>View details</span>
-          </div>
-        </div>
+        </section>
+        <section class="listing-card-footer">
+          <section class="seller-summary">
+            <section class="seller-line">
+              <span>Seller</span>
+              <span class="seller-name">${escapeHtml(getSellerName(listing))}</span>
+            </section>
+            <section class="seller-rating-row">${renderSellerStars(listing)}<span>${escapeHtml(getSellerRatingText(listing))}</span></section>
+          </section>
+          <section class="card-footer-actions">
+            <button class="save-listing-btn ${isSaved ? 'saved' : ''}" type="button" data-save-listing="${listing.id}" aria-label="${isSaved ? 'Remove saved listing' : 'Save listing'}">
+              <svg viewBox="0 0 20 20" fill="${isSaved ? 'currentColor' : 'none'}" stroke="currentColor" stroke-width="1.8"><path d="M10 16.5s-6-3.4-6-8A3.2 3.2 0 0 1 9.5 6.2L10 6.8l.5-.6A3.2 3.2 0 0 1 16 8.5c0 4.6-6 8-6 8Z" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </button>
+            <section class="listing-card-action">
+              <span class="inline-action-icon"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8"><path d="m8.5 5 5 5-5 5" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+              <span>Details</span>
+            </section>
+          </section>
+        </section>
       </article>
     `;
+  }
+
+  async function toggleSavedListing(event) {
+    event.preventDefault();
+    event.stopPropagation();
+    await toggleSavedListingById(event.currentTarget.dataset.saveListing);
+    renderListings();
+  }
+
+  async function toggleSavedListingById(listingId) {
+    const wasSaved = state.savedListings.has(listingId);
+    if (wasSaved) {
+      state.savedListings.delete(listingId);
+    } else {
+      state.savedListings.add(listingId);
+    }
+    localStorage.setItem('unimart_saved_listings', JSON.stringify([...state.savedListings]));
+    if (state.savedListingsRemoteReady && state.user) {
+      const result = wasSaved
+        ? await Auth.unsaveListing({ userId: state.user.id, listingId })
+        : await Auth.saveListing({ userId: state.user.id, listingId });
+      if (result.error) {
+        if (wasSaved) state.savedListings.add(listingId);
+        else state.savedListings.delete(listingId);
+        localStorage.setItem('unimart_saved_listings', JSON.stringify([...state.savedListings]));
+        showToast(result.error, 'error');
+        return;
+      }
+    }
+    showToast(wasSaved ? 'Removed from saved listings' : 'Saved listing', 'success');
   }
 
   function openListingModal(listing) {
@@ -777,18 +1230,30 @@
     document.getElementById('modal-description').textContent = listing.description || 'No description added yet.';
     document.getElementById('modal-condition').textContent = listing.condition;
     document.getElementById('modal-status').textContent = formatStatusLabel(listing.status);
-    document.getElementById('modal-seller').textContent = getSellerName(listing);
+    document.getElementById('modal-seller').innerHTML = `
+      <button class="btn-reset seller-profile-link" id="modal-seller-profile-btn" type="button">${escapeHtml(getSellerName(listing))}</button>
+      <span class="seller-rating-row">${renderSellerStars(listing)}<span>${escapeHtml(getSellerRatingText(listing))}</span></span>
+      <span class="seller-trust-line">${escapeHtml(getSellerTrustText(listing))}</span>
+    `;
+    document.getElementById('modal-seller-profile-btn').addEventListener('click', () => openSellerModal(listing));
     document.getElementById('modal-date').textContent = formatDate(listing.createdAt);
     document.getElementById('modal-tags').innerHTML = `
       <span class="listing-tag">${escapeHtml(listing.condition)}</span>
-      ${listing.isTradeable ? '<span class="listing-tag trade">Tradeable</span>' : ''}
+      <span class="listing-tag trade">${escapeHtml(formatListingType(getListingType(listing)))}</span>
       <span class="listing-tag">${escapeHtml(formatStatusLabel(listing.status))}</span>
     `;
+    updateModalSaveButton(listing);
 
     const buyerActions = document.getElementById('modal-buyer-actions');
     buyerActions.style.display = shouldShowBuyerActions(listing) ? 'flex' : 'none';
     document.getElementById('buyer-message-input').value = '';
     document.getElementById('buyer-message-error').textContent = '';
+    document.getElementById('offer-amount-input').value = '';
+    document.getElementById('offer-note-input').value = '';
+    document.getElementById('offer-error').textContent = '';
+    document.getElementById('offer-box').classList.remove('show');
+    updateBuyerMessageMeta();
+    updateOfferMeta();
 
     const imageWrap = document.getElementById('modal-image-wrap');
     const image = document.getElementById('modal-image');
@@ -810,10 +1275,55 @@
     modal.setAttribute('aria-hidden', 'false');
   }
 
+  function updateModalSaveButton(listing) {
+    const button = document.getElementById('modal-save-btn');
+    const isSaved = state.savedListings.has(listing.id);
+    button.classList.toggle('saved', isSaved);
+    button.setAttribute('aria-label', isSaved ? 'Remove saved listing' : 'Save listing');
+    button.innerHTML = `<svg viewBox="0 0 20 20" fill="${isSaved ? 'currentColor' : 'none'}" stroke="currentColor" stroke-width="1.8"><path d="M10 16.5s-6-3.4-6-8A3.2 3.2 0 0 1 9.5 6.2L10 6.8l.5-.6A3.2 3.2 0 0 1 16 8.5c0 4.6-6 8-6 8Z" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+  }
+
+  function updateBuyerMessageMeta() {
+    const input = document.getElementById('buyer-message-input');
+    const count = document.getElementById('buyer-message-count');
+    input.style.height = 'auto';
+    input.style.height = `${Math.min(input.scrollHeight, 150)}px`;
+    count.textContent = `${input.value.length}/240`;
+  }
+
+  function updateOfferMeta() {
+    const input = document.getElementById('offer-note-input');
+    const count = document.getElementById('offer-note-count');
+    input.style.height = 'auto';
+    input.style.height = `${Math.min(input.scrollHeight, 120)}px`;
+    count.textContent = `${input.value.length}/180`;
+  }
+
+  function buildOfferText(amount, note) {
+    const parts = [];
+    if (amount) parts.push(`R ${Number(amount).toLocaleString('en-ZA')}`);
+    if (note) parts.push(note);
+    return parts.join(' - ');
+  }
+
   function closeListingModal() {
     modal.classList.remove('show');
     modal.setAttribute('aria-hidden', 'true');
+    closeSellerModal();
     state.selectedListing = null;
+  }
+
+  function openSellerModal(listing) {
+    if (!listing) return;
+    document.getElementById('seller-profile-title').textContent = getSellerName(listing);
+    document.getElementById('seller-profile-content').innerHTML = renderSellerProfile(listing);
+    sellerModal.classList.add('show');
+    sellerModal.setAttribute('aria-hidden', 'false');
+  }
+
+  function closeSellerModal() {
+    sellerModal.classList.remove('show');
+    sellerModal.setAttribute('aria-hidden', 'true');
   }
 
   document.querySelectorAll('[data-buyer-action]').forEach(button => {
@@ -822,11 +1332,28 @@
       const action = this.dataset.buyerAction;
       const input = document.getElementById('buyer-message-input');
       const error = document.getElementById('buyer-message-error');
+      const offerBox = document.getElementById('offer-box');
+      const offerError = document.getElementById('offer-error');
+      const offerAmount = document.getElementById('offer-amount-input').value.trim();
+      const offerNote = document.getElementById('offer-note-input').value.trim();
       const text = input.value.trim();
       error.textContent = '';
+      offerError.textContent = '';
 
-      if (!text) {
-        error.textContent = action === 'offer' ? 'Enter your offer before sending.' : 'Enter a message before sending.';
+      if (action === 'offer' && !offerBox.classList.contains('show')) {
+        offerBox.classList.add('show');
+        updateOfferMeta();
+        document.getElementById('offer-amount-input').focus();
+        return;
+      }
+
+      if (action === 'message' && !text) {
+        error.textContent = 'Enter a message before sending.';
+        return;
+      }
+
+      if (action === 'offer' && !offerAmount && !offerNote) {
+        offerError.textContent = 'Add an amount or trade idea before sending.';
         return;
       }
 
@@ -834,11 +1361,18 @@
       document.querySelectorAll('[data-buyer-action]').forEach(btn => btn.disabled = true);
       this.textContent = 'Sending...';
 
-      const result = await Auth.startConversation({
-        listingId: state.selectedListing.id,
-        buyerId: state.user.id,
-        initialMessage: action === 'offer' ? `Offer: ${text}` : text,
-      });
+      const result = action === 'offer'
+        ? await Auth.startOffer({
+            listingId: state.selectedListing.id,
+            buyerId: state.user.id,
+            offerText: buildOfferText(offerAmount, offerNote),
+            messageText: text,
+          })
+        : await Auth.startConversation({
+            listingId: state.selectedListing.id,
+            buyerId: state.user.id,
+            initialMessage: text,
+          });
 
       document.querySelectorAll('[data-buyer-action]').forEach(btn => btn.disabled = false);
       this.textContent = originalText;
@@ -848,9 +1382,32 @@
         return;
       }
 
-      showToast('Conversation started', 'success');
+      showToast(action === 'offer' ? 'Offer sent' : 'Conversation started', 'success');
       window.location.href = `messages.html?conversation=${encodeURIComponent(result.conversation.id)}`;
     });
+  });
+
+  document.getElementById('report-listing-btn').addEventListener('click', async function () {
+    if (!state.selectedListing) return;
+    const reason = window.prompt('Why are you reporting this listing?');
+    if (!reason || !reason.trim()) return;
+
+    this.disabled = true;
+    const result = await Auth.reportContent({
+      reporterId: state.user.id,
+      targetType: 'listing',
+      targetId: state.selectedListing.id,
+      listingId: state.selectedListing.id,
+      reason: reason.trim(),
+    });
+    this.disabled = false;
+
+    if (result.error) {
+      showToast(result.error, 'error');
+      return;
+    }
+
+    showToast('Listing reported for moderation', 'success');
   });
 
   function formatCurrency(value) {
@@ -876,7 +1433,145 @@
   }
 
   function getSellerName(listing) {
-    return listing.sellerDisplayName || shortId(listing.sellerId);
+    const username = String(listing.sellerUsername || '').trim();
+    if (username) return username.startsWith('@') ? username : `@${username}`;
+    const fullName = String(listing.sellerFullName || '').trim();
+    if (fullName) return fullName;
+    const displayName = String(listing.sellerDisplayName || '').trim();
+    if (displayName && !looksLikeUuid(displayName)) return displayName.includes('@') ? displayName.split('@')[0] : displayName;
+    return shortId(listing.sellerId);
+  }
+
+  function looksLikeUuid(value) {
+    return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(String(value || '').trim());
+  }
+
+  function getSellerProfileName(listing) {
+    const username = String(listing.sellerUsername || '').trim();
+    if (username) return username.startsWith('@') ? username : `@${username}`;
+    const fullName = String(listing.sellerFullName || '').trim();
+    if (fullName) return fullName;
+    return getSellerName(listing);
+  }
+
+  function getSellerPublicFullName(listing) {
+    const fullName = String(listing.sellerFullName || '').trim();
+    const username = String(listing.sellerUsername || '').trim();
+    if (!fullName || !username) return '';
+    return fullName;
+  }
+
+  function getSellerCampusText(listing) {
+    const university = String(listing.sellerUniversity || '').trim();
+    const campus = String(listing.sellerCampus || '').trim();
+    if (university && campus) return `${university} - ${campus}`;
+    return university || campus || 'Campus not added yet';
+  }
+
+  function getSellerTrustText(listing) {
+    const completed = Number(listing.sellerCompletedTransactions || 0);
+    const reviewCount = Number(listing.sellerReviewCount || 0);
+    const reviewText = reviewCount ? `${Number(listing.sellerRatingAverage || 0).toFixed(1)} rating` : 'No reviews yet';
+    const tradeText = completed ? `${completed} completed ${completed === 1 ? 'trade' : 'trades'}` : 'No completed trades yet';
+    return `${reviewText} - ${tradeText}`;
+  }
+
+  function getSellerInitials(listing) {
+    const source = getSellerProfileName(listing).replace(/^@/, '') || getSellerName(listing);
+    const parts = source.split(/\s+/).filter(Boolean);
+    if (!parts.length) return 'U';
+    if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+    return `${parts[0][0]}${parts[parts.length - 1][0]}`.toUpperCase();
+  }
+
+  function formatSellerRating(listing) {
+    if (!listing.sellerReviewCount) return '';
+    const average = Number(listing.sellerRatingAverage || 0).toFixed(1);
+    return ` - ${average}/5 (${listing.sellerReviewCount})`;
+  }
+
+  function getSellerRatingText(listing) {
+    if (!listing.sellerReviewCount) return 'No reviews yet';
+    const average = Number(listing.sellerRatingAverage || 0).toFixed(1);
+    return `${average} (${listing.sellerReviewCount})`;
+  }
+
+  function renderSellerStars(listing) {
+    if (!listing.sellerReviewCount) return '';
+    const average = Number(listing.sellerRatingAverage || 0);
+    const filled = Math.round(average);
+    return `
+      <span class="seller-stars" aria-label="${escapeAttribute(getSellerRatingText(listing))}">
+        ${[1, 2, 3, 4, 5].map(index => `<span class="${index <= filled ? '' : 'empty'}">★</span>`).join('')}
+      </span>
+    `;
+  }
+
+  function renderSellerHistory(listing) {
+    const completed = Number(listing.sellerCompletedTransactions || 0);
+    const categories = Array.isArray(listing.sellerRecentCategories) ? listing.sellerRecentCategories : [];
+    const lastCompleted = listing.sellerLastCompletedAt ? `Last completed ${formatDate(listing.sellerLastCompletedAt)}` : '';
+    if (!completed) {
+      return `
+        <span>No completed trades yet</span>
+        <span class="seller-history-summary">
+          <span class="seller-history-pill">New seller history</span>
+        </span>
+      `;
+    }
+    return `
+      <span>${completed} completed ${completed === 1 ? 'trade' : 'trades'}${lastCompleted ? ` - ${escapeHtml(lastCompleted)}` : ''}</span>
+      <span class="seller-history-summary">
+        ${categories.length
+          ? categories.map(item => `<span class="seller-history-pill">${escapeHtml(item.label)}: ${Number(item.count) || 0}</span>`).join('')
+          : '<span class="seller-history-pill">Completed handovers</span>'}
+      </span>
+    `;
+  }
+
+  function renderSellerProfile(listing) {
+    const fullName = getSellerPublicFullName(listing);
+    const reviewCount = Number(listing.sellerReviewCount || 0);
+    const rating = reviewCount ? Number(listing.sellerRatingAverage || 0).toFixed(1) : 'No reviews yet';
+    const completed = Number(listing.sellerCompletedTransactions || 0);
+    const lastCompleted = listing.sellerLastCompletedAt ? formatDate(listing.sellerLastCompletedAt) : 'No completed handovers yet';
+    const categories = Array.isArray(listing.sellerRecentCategories) ? listing.sellerRecentCategories : [];
+
+    return `
+      <section class="seller-profile-head">
+        <section class="seller-profile-avatar" aria-hidden="true">${escapeHtml(getSellerInitials(listing))}</section>
+        <section>
+          <section class="seller-profile-name">${escapeHtml(getSellerProfileName(listing))}</section>
+          <section class="seller-profile-subtitle">
+            ${fullName ? `${escapeHtml(fullName)}<br>` : ''}
+            ${escapeHtml(getSellerCampusText(listing))}
+          </section>
+        </section>
+      </section>
+      <section class="seller-profile-grid">
+        <section class="seller-profile-stat">
+          <strong>Rating</strong>
+          <span>${reviewCount ? `${escapeHtml(rating)}/5 from ${reviewCount} ${reviewCount === 1 ? 'review' : 'reviews'}` : 'No reviews yet'}</span>
+        </section>
+        <section class="seller-profile-stat">
+          <strong>Completed trades</strong>
+          <span>${completed}</span>
+        </section>
+        <section class="seller-profile-stat">
+          <strong>Last handover</strong>
+          <span>${escapeHtml(lastCompleted)}</span>
+        </section>
+        <section class="seller-profile-stat">
+          <strong>Current listing</strong>
+          <span>${escapeHtml(listing.category || 'Marketplace item')}</span>
+        </section>
+      </section>
+      <section class="seller-profile-section">
+        <section class="seller-profile-section-title">Marketplace history</section>
+        ${renderSellerHistory(listing)}
+        ${categories.length ? '' : '<section class="seller-profile-subtitle" style="margin-top:8px;">Category history appears after completed handovers.</section>'}
+      </section>
+    `;
   }
 
   function shouldShowBuyerActions(listing) {
@@ -890,6 +1585,20 @@
 
   function normalizeCondition(value) {
     return String(value || '').trim().toLowerCase();
+  }
+
+  function getListingType(listing = {}) {
+    if (['sale', 'trade', 'both'].includes(listing.listingType)) return listing.listingType;
+    return listing.isTradeable ? 'both' : 'sale';
+  }
+
+  function formatListingType(value) {
+    const labels = {
+      sale: 'Sale only',
+      trade: 'Trade only',
+      both: 'Sale or trade',
+    };
+    return labels[value] || 'Sale only';
   }
 
   function parsePriceFilter(value) {
@@ -916,9 +1625,10 @@
   function hasActiveFilters() {
     return Boolean(
       state.query ||
+      state.savedOnly ||
       state.category !== 'all' ||
       state.condition !== 'all' ||
-      state.tradeable !== 'all' ||
+      state.listingType !== 'all' ||
       parsePriceFilter(state.minPrice) !== null ||
       parsePriceFilter(state.maxPrice) !== null
     );
@@ -932,14 +1642,15 @@
   function clearFilters() {
     state.query = '';
     state.category = 'all';
+    state.savedOnly = false;
     state.condition = 'all';
-    state.tradeable = 'all';
+    state.listingType = 'all';
     state.minPrice = '';
     state.maxPrice = '';
 
     searchInput.value = '';
     conditionFilter.value = 'all';
-    tradeableFilter.value = 'all';
+    listingTypeFilter.value = 'all';
     minPriceFilter.value = '';
     maxPriceFilter.value = '';
     document.querySelectorAll('.filter-chip').forEach(chip => {
@@ -963,5 +1674,6 @@
   }
 
   </script>
-</body>
-</html>
+
+
+</body></html>
