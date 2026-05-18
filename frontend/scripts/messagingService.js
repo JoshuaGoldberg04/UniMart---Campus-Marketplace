@@ -350,35 +350,33 @@ async function _fetchListingsByIds(listingIds = []) {
   const ids = _uniqueValues(listingIds);
   if (!ids.length) return {};
 
-  // Try listing_id first (most common schema), fall back to id column
-  let { data, error } = await getSupabaseClient()
-    .from('listings')
-    .select('listing_id,id,title,image_url,status')
-    .in('listing_id', ids);
-
-  // If the listing_id column doesn't exist or no rows found, try id column
-  if (error || !data || !data.length) {
-    const fallback = await getSupabaseClient()
-      .from('listings')
-      .select('listing_id,id,title,image_url,status')
-      .in('id', ids);
-    if (!fallback.error && fallback.data && fallback.data.length) {
-      data = fallback.data;
-      error = null;
-    }
-  }
-
-  if (!data || !data.length) {
-    if (error) console.warn('Failed to hydrate conversation listings:', error.message);
-    return {};
-  }
-
-  // Index by both id fields so lookups work regardless of which the conversation row uses
+  // Keep this tolerant. The project has been run against schemas that use either
+  // listing_id or id as the PK. Selecting * avoids breaking when one of those
+  // columns does not exist after a schema/import reset.
   const map = {};
-  data.forEach(listing => {
-    if (listing.listing_id) map[listing.listing_id] = listing;
-    if (listing.id) map[listing.id] = listing;
-  });
+  for (const column of ['listing_id', 'id']) {
+    const { data, error } = await getSupabaseClient()
+      .from('listings')
+      .select('*')
+      .in(column, ids);
+
+    if (error) {
+      console.warn(`Listing hydration skipped for ${column}:`, error.message);
+      continue;
+    }
+
+    (data || []).forEach(listing => {
+      const normalised = {
+        ...listing,
+        title: listing.title || 'Listing',
+        image_url: listing.image_url || listing.imageUrl || '',
+        status: listing.status || null,
+      };
+      if (normalised.listing_id) map[normalised.listing_id] = normalised;
+      if (normalised.id) map[normalised.id] = normalised;
+    });
+  }
+
   return map;
 }
 
@@ -650,118 +648,142 @@ export async function deleteConversationForUser({ conversationId, userId } = {})
 }
 
 export async function getConversationMessages({ conversationId, userId, markRead = false }) {
-  let convResult = await _getConversationById(conversationId);
+  try {
+    const convResult = await _getConversationById(conversationId);
 
-  if (convResult.error) return { error: _userFacingError(convResult.error) };
-  const conversationRow = convResult.data;
-  if (!conversationRow || ![conversationRow.buyer_id, conversationRow.seller_id].includes(userId)) return { error: 'Conversation not found.' };
+    if (convResult.error) return { error: _userFacingError(convResult.error) };
+    const conversationRow = convResult.data;
+    if (!conversationRow || ![conversationRow.buyer_id, conversationRow.seller_id].includes(userId)) {
+      return { error: 'Conversation not found.' };
+    }
 
-  const resolvedConversationId = _conversationId(conversationRow);
+    const resolvedConversationId = _conversationId(conversationRow);
 
-  if (markRead) {
-    _markConversationReadLocally(userId, resolvedConversationId);
-    await getSupabaseClient()
-      .from('messages')
-      .update({ read_at: new Date().toISOString() })
-      .eq('conversation_id', resolvedConversationId)
-      .neq('sender_id', userId)
-      .is('read_at', null);
-  }
+    if (markRead) {
+      _markConversationReadLocally(userId, resolvedConversationId);
+      const readResult = await getSupabaseClient()
+        .from('messages')
+        .update({ read_at: new Date().toISOString() })
+        .eq('conversation_id', resolvedConversationId)
+        .neq('sender_id', userId)
+        .is('read_at', null);
+      if (readResult?.error) console.warn('Could not mark messages as read:', readResult.error.message);
+    }
 
-  let { data, error } = await getSupabaseClient()
-    .from('messages')
-    .select('*')
-    .eq('conversation_id', resolvedConversationId)
-    .order('created_at', { ascending: true });
-
-  // Fallback: some schemas store the conversation reference differently
-  if (error || !data) {
-    const fallback = await getSupabaseClient()
+    let { data, error } = await getSupabaseClient()
       .from('messages')
       .select('*')
-      .eq('id', resolvedConversationId)
+      .eq('conversation_id', resolvedConversationId)
       .order('created_at', { ascending: true });
-    if (!fallback.error) { data = fallback.data; error = null; }
-  }
 
-  if (error) return { error: _userFacingError(error) };
+    if (error) return { error: _userFacingError(error) };
 
-  const offersResult = await getSupabaseClient()
-    .from('offers')
-    .select('*')
-    .eq('conversation_id', resolvedConversationId)
-    .order('created_at', { ascending: false });
-
-  if (markRead && !offersResult.error) {
-    const visibleOfferNotifications = (offersResult.data || []).filter(offer => {
-      if (conversationRow.seller_id === userId) return offer.status === 'pending';
-      if (conversationRow.buyer_id === userId) return ['accepted', 'declined'].includes(offer.status);
-      return false;
-    });
-    _markOfferNotificationsSeen(userId, visibleOfferNotifications);
-    _markConversationReadLocally(userId, resolvedConversationId, _afterLatestTimestamp([
-      ...(data || []),
-      ...(offersResult.data || []),
-    ]));
-  }
-
-  const transactionsResult = await getSupabaseClient()
-    .from('transactions')
-    .select('*')
-    .eq('conversation_id', resolvedConversationId)
-    .order('created_at', { ascending: false });
-
-  let transactions = transactionsResult.error ? [] : (transactionsResult.data || []).map(toTransaction);
-  let transactionIds = transactions.map(transaction => transaction.id).filter(Boolean);
-  const bookingIds = transactions.map(transaction => transaction.facilityBookingId).filter(Boolean);
-  if (bookingIds.length || transactions.length) {
-    let bookingQuery = getSupabaseClient().from('facility_bookings').select('*');
-    if (bookingIds.length) bookingQuery = bookingQuery.in('booking_id', bookingIds);
-    else bookingQuery = bookingQuery.in('transaction_id', transactionIds);
-    const bookingsResult = await bookingQuery;
-    let bookingRows = bookingsResult.error ? [] : (bookingsResult.data || []);
-    if (bookingIds.length && transactions.length) {
-      const byTransactionResult = await getSupabaseClient()
-        .from('facility_bookings')
+    // Optional messaging side-panels must never stop the core message thread
+    // from rendering. After auth.js was split, several environments had some
+    // of these tables/columns missing, which left the UI stuck on "Loading".
+    let offersResult = { data: [], error: null };
+    try {
+      offersResult = await getSupabaseClient()
+        .from('offers')
         .select('*')
-        .in('transaction_id', transactionIds);
-      if (!byTransactionResult.error) bookingRows = [...bookingRows, ...(byTransactionResult.data || [])];
+        .eq('conversation_id', resolvedConversationId)
+        .order('created_at', { ascending: false });
+      if (offersResult.error) console.warn('Offers unavailable for this thread:', offersResult.error.message);
+    } catch (err) {
+      console.warn('Offers unavailable for this thread:', err?.message || err);
     }
-    const bookingsById = new Map(bookingRows.map(row => [row.booking_id || row.id, _toFacilityBooking(row)]));
-    const bookingsByTransaction = new Map(bookingRows.map(row => [row.transaction_id, _toFacilityBooking(row)]));
-    transactions = transactions.map(transaction => {
-      const booking = bookingsById.get(transaction.facilityBookingId) || bookingsByTransaction.get(transaction.id) || null;
-      return {
-        ...transaction,
-        facilityBookingId: transaction.facilityBookingId || booking?.id || null,
-        facilityBooking: booking,
-      };
-    });
-  }
-  transactionIds = transactions.map(transaction => transaction.id).filter(Boolean);
-  const reviewsResult = transactionIds.length
-    ? await getSupabaseClient()
-        .from('reviews')
-        .select('*')
-        .in('transaction_id', transactionIds)
-        .order('created_at', { ascending: false })
-    : { data: [], error: null };
 
-  const [conversation] = await _hydrateConversations([conversationRow], userId);
-  return {
-    conversation,
-    offers: offersResult.error ? [] : (offersResult.data || []).map(toOffer),
-    transactions,
-    reviews: reviewsResult.error ? [] : (reviewsResult.data || []).map(toReview),
-    messages: (data || []).map(message => ({
-      id: message.message_id || message.id,
-      conversationId: message.conversation_id,
-      senderId: message.sender_id,
-      body: message.body || message.message || message.content || '',
-      createdAt: message.created_at,
-      readAt: message.read_at,
-    })),
-  };
+    if (markRead && !offersResult.error) {
+      const visibleOfferNotifications = (offersResult.data || []).filter(offer => {
+        if (conversationRow.seller_id === userId) return offer.status === 'pending';
+        if (conversationRow.buyer_id === userId) return ['accepted', 'declined'].includes(offer.status);
+        return false;
+      });
+      _markOfferNotificationsSeen(userId, visibleOfferNotifications);
+      _markConversationReadLocally(userId, resolvedConversationId, _afterLatestTimestamp([
+        ...(data || []),
+        ...(offersResult.data || []),
+      ]));
+    }
+
+    let transactionsResult = { data: [], error: null };
+    try {
+      transactionsResult = await getSupabaseClient()
+        .from('transactions')
+        .select('*')
+        .eq('conversation_id', resolvedConversationId)
+        .order('created_at', { ascending: false });
+      if (transactionsResult.error) console.warn('Transactions unavailable for this thread:', transactionsResult.error.message);
+    } catch (err) {
+      console.warn('Transactions unavailable for this thread:', err?.message || err);
+    }
+
+    let transactions = transactionsResult.error ? [] : (transactionsResult.data || []).map(toTransaction);
+    let transactionIds = transactions.map(transaction => transaction.id).filter(Boolean);
+    const bookingIds = transactions.map(transaction => transaction.facilityBookingId).filter(Boolean);
+    if (bookingIds.length || transactionIds.length) {
+      try {
+        let bookingQuery = getSupabaseClient().from('facility_bookings').select('*');
+        if (bookingIds.length) bookingQuery = bookingQuery.in('booking_id', bookingIds);
+        else bookingQuery = bookingQuery.in('transaction_id', transactionIds);
+        const bookingsResult = await bookingQuery;
+        let bookingRows = bookingsResult.error ? [] : (bookingsResult.data || []);
+        if (bookingIds.length && transactionIds.length) {
+          const byTransactionResult = await getSupabaseClient()
+            .from('facility_bookings')
+            .select('*')
+            .in('transaction_id', transactionIds);
+          if (!byTransactionResult.error) bookingRows = [...bookingRows, ...(byTransactionResult.data || [])];
+        }
+        const bookingsById = new Map(bookingRows.map(row => [row.booking_id || row.id, _toFacilityBooking(row)]));
+        const bookingsByTransaction = new Map(bookingRows.map(row => [row.transaction_id, _toFacilityBooking(row)]));
+        transactions = transactions.map(transaction => {
+          const booking = bookingsById.get(transaction.facilityBookingId) || bookingsByTransaction.get(transaction.id) || null;
+          return {
+            ...transaction,
+            facilityBookingId: transaction.facilityBookingId || booking?.id || null,
+            facilityBooking: booking,
+          };
+        });
+      } catch (err) {
+        console.warn('Facility booking details unavailable for this thread:', err?.message || err);
+      }
+    }
+
+    transactionIds = transactions.map(transaction => transaction.id).filter(Boolean);
+    let reviewsResult = { data: [], error: null };
+    if (transactionIds.length) {
+      try {
+        reviewsResult = await getSupabaseClient()
+          .from('reviews')
+          .select('*')
+          .in('transaction_id', transactionIds)
+          .order('created_at', { ascending: false });
+        if (reviewsResult.error) console.warn('Reviews unavailable for this thread:', reviewsResult.error.message);
+      } catch (err) {
+        console.warn('Reviews unavailable for this thread:', err?.message || err);
+      }
+    }
+
+    const [conversation] = await _hydrateConversations([conversationRow], userId);
+    return {
+      conversation,
+      offers: offersResult.error ? [] : (offersResult.data || []).map(toOffer),
+      transactions,
+      reviews: reviewsResult.error ? [] : (reviewsResult.data || []).map(toReview),
+      messages: (data || []).map(message => ({
+        id: message.message_id || message.id,
+        conversationId: message.conversation_id,
+        senderId: message.sender_id,
+        body: message.body || message.message || message.content || '',
+        createdAt: message.created_at,
+        readAt: message.read_at,
+      })),
+    };
+  } catch (err) {
+    console.error('Failed to load conversation messages:', err);
+    return { error: _userFacingError(err, 'Messages could not be loaded. Please refresh and try again.') };
+  }
 }
 
 export async function updateOfferStatus({ offerId, userId, status }) {
@@ -974,13 +996,32 @@ export async function reportContent({ reporterId, targetType, targetId, listingI
 
 export async function sendMessage({ conversationId, senderId, body }) {
   const now = new Date().toISOString();
-  const { data, error } = await getSupabaseClient()
-    .from('messages')
-    .insert({ conversation_id: conversationId, sender_id: senderId, body, created_at: now })
-    .select()
-    .single();
-  if (error) return { error: _userFacingError(error) };
-  await _updateConversationTimestamp(conversationId, now);
-  return { success: true, message: data };
+  const cleanBody = String(body || '').trim();
+  if (!conversationId || !senderId || !cleanBody) return { error: 'Message cannot be empty.' };
+
+  const payloads = [
+    { conversation_id: conversationId, sender_id: senderId, body: cleanBody, created_at: now },
+    { conversation_id: conversationId, sender_id: senderId, message: cleanBody, created_at: now },
+    { conversation_id: conversationId, sender_id: senderId, content: cleanBody, created_at: now },
+  ];
+
+  let lastError = null;
+  for (const payload of payloads) {
+    const { data, error } = await getSupabaseClient()
+      .from('messages')
+      .insert(payload)
+      .select()
+      .single();
+
+    if (!error) {
+      await _updateConversationTimestamp(conversationId, now);
+      return { success: true, message: data };
+    }
+
+    lastError = error;
+    if (!/column .* does not exist|schema cache|Could not find.*column/i.test(error.message || '')) break;
+  }
+
+  return { error: _userFacingError(lastError) };
 }
 

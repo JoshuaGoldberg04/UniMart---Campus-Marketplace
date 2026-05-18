@@ -824,7 +824,14 @@
     const threadScroll = document.getElementById('thread-scroll');
     if (showLoading) stack.innerHTML = renderEmptyPanel('Loading messages...');
 
-    const result = await Auth.getConversationMessages({ conversationId, userId: state.user.id, markRead });
+    let result;
+    try {
+      result = await Auth.getConversationMessages({ conversationId, userId: state.user.id, markRead });
+    } catch (err) {
+      console.error('Message thread failed:', err);
+      result = { error: 'Messages could not be loaded. Please refresh and try again.' };
+    }
+
     if (result.error) {
       if (showLoading || !state.messages.length) stack.innerHTML = renderEmptyPanel(result.error);
       else showToast(result.error, 'error');
@@ -1175,11 +1182,17 @@
     button.disabled = true;
     button.textContent = 'Sending...';
 
-    const result = await Auth.sendMessage({
-      conversationId: state.activeConversationId,
-      senderId: state.user.id,
-      body,
-    });
+    let result;
+    try {
+      result = await Auth.sendMessage({
+        conversationId: state.activeConversationId,
+        senderId: state.user.id,
+        body,
+      });
+    } catch (err) {
+      console.error('Send message failed:', err);
+      result = { error: 'Message could not be sent. Please try again.' };
+    }
 
     button.disabled = false;
     button.textContent = 'Send message';
