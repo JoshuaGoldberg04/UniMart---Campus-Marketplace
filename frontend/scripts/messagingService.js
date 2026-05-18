@@ -135,21 +135,19 @@ export function toModerationAction(row = {}) {
 
 
 async function _getConversationById(conversationId) {
-  let result = await _sb
-    .from('conversations')
-    .select('*')
-    .eq('conversation_id', conversationId)
-    .maybeSingle();
+  // Try both column names in parallel — the schema may use conversation_id or id
+  const [byConvId, byId] = await Promise.all([
+    _sb.from('conversations').select('*').eq('conversation_id', conversationId).maybeSingle().catch(() => ({ data: null, error: { message: 'column not found' } })),
+    _sb.from('conversations').select('*').eq('id', conversationId).maybeSingle().catch(() => ({ data: null, error: { message: 'column not found' } })),
+  ]);
 
-  if (result.error && /conversation_id/i.test(result.error.message || '')) {
-    result = await _sb
-      .from('conversations')
-      .select('*')
-      .eq('id', conversationId)
-      .maybeSingle();
-  }
+  // Return whichever query found a row
+  if (byConvId.data) return { data: byConvId.data, error: null };
+  if (byId.data) return { data: byId.data, error: null };
 
-  return result;
+  // Both failed — return the first real error or a not-found
+  const err = byConvId.error || byId.error;
+  return { data: null, error: err };
 }
 
 export async function startOffer({ listingId, buyerId, offerText, messageText = '' }) {
@@ -347,30 +345,37 @@ async function _fetchListingsByIds(listingIds = []) {
   const ids = _uniqueValues(listingIds);
   if (!ids.length) return {};
 
-  let { data, error } = await _sb
-    .from('listings')
-    .select('listing_id,title,image_url,status')
-    .in('listing_id', ids);
+  // Query both id columns simultaneously so we never miss listings
+  // regardless of whether the schema uses listing_id or id as primary key
+  const [byListingId, byId] = await Promise.all([
+    _sb.from('listings').select('listing_id,id,title,image_url,status').in('listing_id', ids).catch(() => ({ data: [] })),
+    _sb.from('listings').select('listing_id,id,title,image_url,status').in('id', ids).catch(() => ({ data: [] })),
+  ]);
 
-  if (error) {
-    const fallback = await _sb
-      .from('listings')
-      .select('id,title,image_url,status')
-      .in('id', ids);
-    data = fallback.data || [];
-    error = fallback.error;
-  }
-
-  if (error) {
-    console.warn('Failed to hydrate conversation listings:', error.message);
+  const combined = [...(byListingId.data || []), ...(byId.data || [])];
+  if (!combined.length) {
+    console.warn('Failed to hydrate conversation listings for ids:', ids);
     return {};
   }
 
-  return Object.fromEntries((data || []).map(listing => [listing.listing_id || listing.id, listing]));
+  // Deduplicate and index by whichever id the conversation row uses
+  const map = {};
+  combined.forEach(listing => {
+    const key = listing.listing_id || listing.id;
+    if (key) map[key] = listing;
+    // Also index by the other id so lookups work either way
+    if (listing.listing_id) map[listing.listing_id] = listing;
+    if (listing.id) map[listing.id] = listing;
+  });
+  return map;
 }
 
 function _isSoldListingStatus(status) {
-  return String(status || '').trim().toLowerCase() === 'sold';
+  // Only filter out conversations where we positively know the listing is sold.
+  // When status is null (listing lookup failed), keep the conversation visible
+  // so buyers can still see their inbox after making an offer.
+  if (!status) return false;
+  return String(status).trim().toLowerCase() === 'sold';
 }
 
 async function _countUnreadMessagesForConversation(conversationId, currentUserId) {
