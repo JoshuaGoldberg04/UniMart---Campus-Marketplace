@@ -135,19 +135,24 @@ export function toModerationAction(row = {}) {
 
 
 async function _getConversationById(conversationId) {
-  // Try both column names in parallel — the schema may use conversation_id or id
-  const [byConvId, byId] = await Promise.all([
-    _sb.from('conversations').select('*').eq('conversation_id', conversationId).maybeSingle().catch(() => ({ data: null, error: { message: 'column not found' } })),
-    _sb.from('conversations').select('*').eq('id', conversationId).maybeSingle().catch(() => ({ data: null, error: { message: 'column not found' } })),
-  ]);
+  // Try conversation_id column first
+  let result = await _sb
+    .from('conversations')
+    .select('*')
+    .eq('conversation_id', conversationId)
+    .maybeSingle();
 
-  // Return whichever query found a row
-  if (byConvId.data) return { data: byConvId.data, error: null };
-  if (byId.data) return { data: byId.data, error: null };
+  // If that column doesn't exist or returned no row, try id column
+  if (result.error || !result.data) {
+    const fallback = await _sb
+      .from('conversations')
+      .select('*')
+      .eq('id', conversationId)
+      .maybeSingle();
+    if (!fallback.error && fallback.data) return fallback;
+  }
 
-  // Both failed — return the first real error or a not-found
-  const err = byConvId.error || byId.error;
-  return { data: null, error: err };
+  return result;
 }
 
 export async function startOffer({ listingId, buyerId, offerText, messageText = '' }) {
@@ -345,25 +350,32 @@ async function _fetchListingsByIds(listingIds = []) {
   const ids = _uniqueValues(listingIds);
   if (!ids.length) return {};
 
-  // Query both id columns simultaneously so we never miss listings
-  // regardless of whether the schema uses listing_id or id as primary key
-  const [byListingId, byId] = await Promise.all([
-    _sb.from('listings').select('listing_id,id,title,image_url,status').in('listing_id', ids).catch(() => ({ data: [] })),
-    _sb.from('listings').select('listing_id,id,title,image_url,status').in('id', ids).catch(() => ({ data: [] })),
-  ]);
+  // Try listing_id first (most common schema), fall back to id column
+  let { data, error } = await _sb
+    .from('listings')
+    .select('listing_id,id,title,image_url,status')
+    .in('listing_id', ids);
 
-  const combined = [...(byListingId.data || []), ...(byId.data || [])];
-  if (!combined.length) {
-    console.warn('Failed to hydrate conversation listings for ids:', ids);
+  // If the listing_id column doesn't exist or no rows found, try id column
+  if (error || !data || !data.length) {
+    const fallback = await _sb
+      .from('listings')
+      .select('listing_id,id,title,image_url,status')
+      .in('id', ids);
+    if (!fallback.error && fallback.data && fallback.data.length) {
+      data = fallback.data;
+      error = null;
+    }
+  }
+
+  if (!data || !data.length) {
+    if (error) console.warn('Failed to hydrate conversation listings:', error.message);
     return {};
   }
 
-  // Deduplicate and index by whichever id the conversation row uses
+  // Index by both id fields so lookups work regardless of which the conversation row uses
   const map = {};
-  combined.forEach(listing => {
-    const key = listing.listing_id || listing.id;
-    if (key) map[key] = listing;
-    // Also index by the other id so lookups work either way
+  data.forEach(listing => {
     if (listing.listing_id) map[listing.listing_id] = listing;
     if (listing.id) map[listing.id] = listing;
   });
@@ -390,9 +402,10 @@ async function _countUnreadMessagesForConversation(conversationId, currentUserId
   };
 
   let result = await countUnread('conversation_id');
-  if ((result.error && /invalid input syntax|uuid/i.test(result.error.message || '')) || result.count === 0) {
+  // Only fall back if there was an actual column error, not just zero results
+  if (result.error && /invalid input syntax|uuid|column.*does not exist/i.test(result.error.message || '')) {
     const fallback = await countUnread('id');
-    if (!fallback.error && Number(fallback.count || 0) > 0) result = fallback;
+    if (!fallback.error) result = fallback;
   }
   return Number(result.count || 0);
 }
