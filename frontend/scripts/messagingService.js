@@ -441,10 +441,12 @@ async function _hydrateConversations(rows = [], currentUserId) {
 
   return Promise.all(rows.map(async row => {
     const unreadCount = await _countUnreadMessagesForConversation(_conversationId(row), currentUserId);
+    const listingKey = row.listing_id;
+    const listing = listingsById[listingKey] || {};
 
     return toConversation({
       ...row,
-      listing: listingsById[row.listing_id] || {},
+      listing,
       buyer: usersById[row.buyer_id] || {},
       seller: usersById[row.seller_id] || {},
       unread_count: unreadCount,
@@ -666,11 +668,21 @@ export async function getConversationMessages({ conversationId, userId, markRead
       .is('read_at', null);
   }
 
-  const { data, error } = await _sb
+  let { data, error } = await _sb
     .from('messages')
     .select('*')
     .eq('conversation_id', resolvedConversationId)
     .order('created_at', { ascending: true });
+
+  // Fallback: some schemas store the conversation reference differently
+  if (error || !data) {
+    const fallback = await _sb
+      .from('messages')
+      .select('*')
+      .eq('id', resolvedConversationId)
+      .order('created_at', { ascending: true });
+    if (!fallback.error) { data = fallback.data; error = null; }
+  }
 
   if (error) return { error: _userFacingError(error) };
 

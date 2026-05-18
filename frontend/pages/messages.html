@@ -602,7 +602,6 @@
     state.user = user;
     loadConversations({ showLoading: true, forceRender: true }).then(async () => {
       await handlePaymentReturn();
-      if (state.activeConversationId) await loadMessages(state.activeConversationId, false, { forceRender: true });
       if (state.activeConversationId) openConversation(state.activeConversationId);
     });
     state.refreshTimer = setInterval(refreshActiveThread, 12000);
